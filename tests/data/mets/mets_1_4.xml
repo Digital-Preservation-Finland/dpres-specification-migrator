@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets OBJID="5b1d2e87-375d-4b13-9dda-3474b8a9bdc8"
+	PROFILE="http://www.kdk.fi/kdk-mets-profile"
+	kdk:CATALOG="1.4"
+	xmlns:mets="http://www.loc.gov/METS/"
+	xmlns:kdk="http://www.kdk.fi/standards/mets/kdk-extensions"
+	xmlns:premis="info:lc/xmlns/premis-v2"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:rts="http://cosimo.stanford.edu/sdr/metsrights/"
+	xmlns:textmd="http://www.kdk.fi/standards/textmd"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/METS/
+ 		http://kdk.fi/standards/mets/mets.xsd" ID="test">
+
+	<mets:metsHdr CREATEDATE="2015-06-17T16:00:00" LASTMODDATE="2015-06-18T16:00:00">
+		<mets:agent ROLE="CREATOR" TYPE="ORGANIZATION" ID="test2">
+			<mets:name>CSC - Tieteen tietotekniikan keskus</mets:name>
+		</mets:agent>
+		<mets:agent ROLE="CREATOR" TYPE="OTHER" OTHERTYPE="STRUCTURE">
+			<mets:name>Kansalliset pitkäaikaissäilytyspalvelut</mets:name>
+		</mets:agent>
+	</mets:metsHdr>
+
+	<mets:dmdSec ID="dmd-project-001" kdk:CREATED="2015-04-09">
+		<mets:mdWrap MDTYPE="DC" MDTYPEVERSION="1.0" ID="test3">
+			<mets:xmlData>
+				<dc:title>Kansalliset pitkäaikaissäilytyspalvelut - kuvaus</dc:title>
+				<dc:creator>CSC - Tieteen tietotekniikan keskus</dc:creator>
+				<dc:subject>Kansalliset pitkäaikaissäilytyspalvelut</dc:subject>
+				<dc:description>Dokumentin sisällön kuvaus.</dc:description>
+				<dc:date>2008-05-20</dc:date>
+				<dc:identifier>csc-test000</dc:identifier>
+				<dc:coverage>2008-05-20/2013-12-31</dc:coverage>
+				<dc:language>fi</dc:language>
+			</mets:xmlData>
+		</mets:mdWrap>
+	</mets:dmdSec>
+	
+	<mets:dmdSec ID="dmd001" kdk:CREATED="2015-04-09">
+		<mets:mdWrap MDTYPE="DC">
+			<mets:xmlData>
+				<dc:title>Kansalliset pitkäaikaissäilytyspalvelut - testidokumentti</dc:title>
+				<dc:creator>CSC - Tieteen tietotekniikan keskus</dc:creator>
+				<dc:subject>Kansalliset pitkäaikaissäilytyspalvelut</dc:subject>
+				<dc:date>2008-05-20</dc:date>
+				<dc:type>Text</dc:type>
+				<dc:identifier>2008-05-20, test001</dc:identifier>
+				<dc:language>fi</dc:language>
+			</mets:xmlData>
+		</mets:mdWrap>
+	</mets:dmdSec>
+	<mets:dmdSec ID="dmd002" kdk:CREATED="2015-04-09">
+		<mets:mdWrap MDTYPE="DC">
+			<mets:xmlData>
+				<dc:title>Kansalliset pitkäaikaissäilytyspalvelut - toinen dokumentti</dc:title>
+				<dc:creator>CSC - Tieteen tietotekniikan keskus</dc:creator>
+				<dc:subject>Kansalliset pitkäaikaissäilytyspalvelut</dc:subject>
+				<dc:date>2008-10-07</dc:date>
+				<dc:type>Text</dc:type>
+				<dc:identifier>2008-10-07, test002</dc:identifier>
+				<dc:language>fi</dc:language>
+			</mets:xmlData>
+		</mets:mdWrap>
+	</mets:dmdSec>
+	
+	<mets:amdSec>
+		<mets:techMD ID="tech001" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:OBJECT">
+				<mets:xmlData>
+					<premis:object xsi:type="premis:file">
+						<premis:objectIdentifier>
+							<premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+							<premis:objectIdentifierValue>66a2987f-4e14-4aad-b262-528e1a5b64bc</premis:objectIdentifierValue>
+						</premis:objectIdentifier>
+						<premis:objectCharacteristics>
+							<premis:compositionLevel>0</premis:compositionLevel>
+							<premis:fixity>
+								<premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm>
+								<premis:messageDigest>c3ca57c494121ac58d9d9735642ed456</premis:messageDigest>
+							</premis:fixity>
+							<premis:format>
+								<premis:formatDesignation>
+									<premis:formatName>application/pdf</premis:formatName>
+									<premis:formatVersion>A-1a</premis:formatVersion>
+								</premis:formatDesignation>
+							</premis:format>
+							<premis:creatingApplication>
+								<premis:dateCreatedByApplication>2015-04-29T13:40:00</premis:dateCreatedByApplication>
+							</premis:creatingApplication>
+						</premis:objectCharacteristics>
+						<premis:relationship>
+							<premis:relationshipType>derivation</premis:relationshipType>
+							<premis:relationshipSubType>has source</premis:relationshipSubType>
+							<premis:relatedObjectIdentification>
+								<premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+								<premis:relatedObjectIdentifierValue>testdata/testfile001.doc</premis:relatedObjectIdentifierValue>
+							</premis:relatedObjectIdentification>
+						</premis:relationship>
+					</premis:object>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:techMD>
+		<mets:techMD ID="tech002" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:OBJECT">
+				<mets:xmlData>
+					<premis:object xsi:type="premis:file">
+						<premis:objectIdentifier>
+							<premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+							<premis:objectIdentifierValue>566b25a5-8710-4184-9771-37875bc5b30a</premis:objectIdentifierValue>
+						</premis:objectIdentifier>
+						<premis:objectCharacteristics>
+							<premis:compositionLevel>0</premis:compositionLevel>
+							<premis:fixity>
+								<premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm>
+								<premis:messageDigest>c0a3a5afb67cc17cfeba92cfef01e0b9</premis:messageDigest>
+							</premis:fixity>
+							<premis:format>
+								<premis:formatDesignation>
+									<premis:formatName>text/plain</premis:formatName>
+								</premis:formatDesignation>
+							</premis:format>
+							<premis:creatingApplication>
+								<premis:dateCreatedByApplication>2015-04-29T13:42:00</premis:dateCreatedByApplication>
+							</premis:creatingApplication>
+						</premis:objectCharacteristics>
+					</premis:object>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:techMD>
+
+		<mets:techMD ID="textmd001" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="TEXTMD">
+				<mets:xmlData>
+					<textmd:textMD>
+						<textmd:character_info>
+							<textmd:charset>UTF-8</textmd:charset>
+						</textmd:character_info>
+					</textmd:textMD>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:techMD>
+		<mets:rightsMD ID="test-rights001" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="METSRIGHTS">
+				<mets:xmlData>
+					<rts:RightsDeclarationMD RIGHTSCATEGORY="CONTRACTUAL">
+						<rts:Context CONTEXTCLASS="GENERAL PUBLIC">
+							<rts:Permissions DISCOVER="true" DISPLAY="true" COPY="false"
+								DUPLICATE="false" MODIFY="false" DELETE="false"
+								PRINT="true" OTHER="false"/>
+						</rts:Context>
+					</rts:RightsDeclarationMD>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:rightsMD>
+		<mets:digiprovMD ID="event-word-pdfa" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:EVENT">
+				<mets:xmlData>
+					<premis:event>
+						<premis:eventIdentifier>
+							<premis:eventIdentifierType>UUID</premis:eventIdentifierType>
+							<premis:eventIdentifierValue>82e18c23-091f-47fa-9964-5ebb3c3cc907</premis:eventIdentifierValue>
+						</premis:eventIdentifier>
+						<premis:eventType>migration</premis:eventType>
+						<premis:eventDateTime>2015-04-29</premis:eventDateTime>
+						<premis:eventDetail>Migration from MS Word to PDF/A</premis:eventDetail>
+						<premis:eventOutcomeInformation>
+							<premis:eventOutcome>success</premis:eventOutcome>
+						</premis:eventOutcomeInformation>
+						<premis:linkingAgentIdentifier>
+							<premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+							<premis:linkingAgentIdentifierValue>csc</premis:linkingAgentIdentifierValue>
+						</premis:linkingAgentIdentifier>
+						<premis:linkingAgentIdentifier>
+							<premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+							<premis:linkingAgentIdentifierValue>ms-word-2013</premis:linkingAgentIdentifierValue>
+						</premis:linkingAgentIdentifier>
+					</premis:event>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:digiprovMD>
+		
+		<mets:digiprovMD ID="event-text-creation" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:EVENT">
+				<mets:xmlData>
+					<premis:event>
+						<premis:eventIdentifier>
+							<premis:eventIdentifierType>UUID</premis:eventIdentifierType>
+							<premis:eventIdentifierValue>c91f41a9-03c1-42c9-842c-2291d60c5db5</premis:eventIdentifierValue>
+						</premis:eventIdentifier>
+						<premis:eventType>creation</premis:eventType>
+						<premis:eventDateTime>2015-04-29</premis:eventDateTime>
+						<premis:eventDetail>Creation of text file-</premis:eventDetail>
+						<premis:eventOutcomeInformation>
+							<premis:eventOutcome>success</premis:eventOutcome>
+						</premis:eventOutcomeInformation>
+						<premis:linkingAgentIdentifier>
+							<premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+							<premis:linkingAgentIdentifierValue>csc</premis:linkingAgentIdentifierValue>
+						</premis:linkingAgentIdentifier>
+						<premis:linkingAgentIdentifier>
+							<premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+							<premis:linkingAgentIdentifierValue>ms-word-2013</premis:linkingAgentIdentifierValue>
+						</premis:linkingAgentIdentifier>
+					</premis:event>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:digiprovMD>
+		
+		<mets:digiprovMD ID="agent-csc" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:AGENT">
+				<mets:xmlData>
+					<premis:agent>
+						<premis:agentIdentifier>
+							<premis:agentIdentifierType>local</premis:agentIdentifierType>
+							<premis:agentIdentifierValue>csc</premis:agentIdentifierValue>
+						</premis:agentIdentifier>
+						<premis:agentName>CSC - IT Center for Science</premis:agentName>
+						<premis:agentType>organization</premis:agentType>
+					</premis:agent>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:digiprovMD>
+
+		<mets:digiprovMD ID="agent-word" kdk:CREATED="2015-04-29">
+			<mets:mdWrap MDTYPE="PREMIS:AGENT">
+				<mets:xmlData>
+					<premis:agent>
+						<premis:agentIdentifier>
+							<premis:agentIdentifierType>local</premis:agentIdentifierType>
+							<premis:agentIdentifierValue>ms-word-2013</premis:agentIdentifierValue>
+						</premis:agentIdentifier>
+						<premis:agentName>MS Office 2013 Word</premis:agentName>
+						<premis:agentType>software</premis:agentType>
+					</premis:agent>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:digiprovMD>
+	</mets:amdSec>
+
+	<mets:fileSec>
+		<mets:fileGrp>
+			<mets:file ID="file001" ADMID="tech001 test-rights001 event-word-pdfa agent-csc agent-word" SIZE="33333">
+				<mets:FLocat LOCTYPE="URL" xlink:type="simple" xlink:href="file://testdata/testfile001.pdf"/>
+			</mets:file>
+			<mets:file ID="file002" ADMID="tech002 textmd001 test-rights001 event-text-creation agent-csc agent-word">
+				<mets:FLocat LOCTYPE="URL" xlink:type="simple" xlink:href="file://testdata/testfile002.txt" xlink:title="test4"/>
+			</mets:file>
+		</mets:fileGrp>
+	</mets:fileSec>
+
+	<mets:structMap>
+		<mets:div TYPE="KDK" xlink:label="test5">
+			<mets:div TYPE="PROJECT" DMDID="dmd-project-001">
+				<mets:div TYPE="DOCUMENT" DMDID="dmd001">
+					<mets:fptr FILEID="file001"/>
+				</mets:div>
+				<mets:div TYPE="DOCUMENT" DMDID="dmd002">
+					<mets:fptr FILEID="file002"/>
+				</mets:div>
+			</mets:div>
+		</mets:div>
+		
+		<mets:div TYPE="test6">
+		</mets:div>
+	</mets:structMap>
+</mets:mets>
