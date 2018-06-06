@@ -113,6 +113,14 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         assert 'MDTYPEVERSION' in root.xpath(
             './/mets:mdWrap', namespaces=m.NAMESPACES)[1].attrib
 
+        assert root.xpath('./mets:metsHdr/@LASTMODDATE',
+                          namespaces=m.NAMESPACES)
+
+        assert root.xpath('./mets:metsHdr/@LASTMODDATE',
+                          namespaces=m.NAMESPACES) > root.xpath(
+                              './mets:metsHdr/@CREATEDATE',
+                              namespaces=m.NAMESPACES)
+
         if version == '1.7.0':
             assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
