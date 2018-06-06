@@ -107,17 +107,22 @@ def main(arguments=None):
                               'to catalog version %s' % args.to_version)
         return 117
 
+    if args.objid and args.record_status != 'dissemination':
+        print ('Warning: the argument objid with the value "%s" was ignored. '
+               'METS OBJID was not changed in the migration to a newer '
+               'version of the specifications.' % args.objid)
+
     if VERSIONS[version]['fix_old']:
         root = fix_1_4_mets(root)
 
-    (migrated_mets, objid, contract) = migrate_mets(
-        root=root, cur_catalog=version, to_catalog=args.to_version,
-        contract=args.contractid)
+    (migrated_mets, objid) = migrate_mets(
+        root=root, cur_catalog=version,
+        to_catalog=args.to_version, contract=args.contractid)
 
     if args.record_status == 'dissemination':
         migrated_mets, objid = transform_to_dip(
-            migrated_mets, cur_catalog=version, to_catalog=args.to_version,
-            objid=args.objid, contract=contract)
+            migrated_mets, cur_catalog=version,
+            to_catalog=args.to_version, objid=args.objid)
 
     mets_str = serialize_mets(migrated_mets)
 
@@ -240,7 +245,8 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     4) Writes a new mets root element for the METS document
     5) Appends all child elements from the supplied root element
        to the new METS
-    6) Writes the updated attribute set to the new root
+    6) Modifies the LASTMODDATE in the metsHdr
+    7) Writes the updated attribute set to the new root
 
     :root: the mets root as xml
     :to_catalog: the intended catalog version of the METS document
@@ -268,10 +274,10 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
         if '{%s}CONTRACTID' % fi_ns in root.attrib:
             contractid = root.get('{%s}CONTRACTID' % fi_ns)
             if contract:
-                print ('Warning: the argument contract %s was ignored. The '
-                       'existing @CONTRACTID of the METS file '
-                       '%s was not overwritten.') % (contract,
-                                                     contractid)
+                print ('Warning: the argument contract with the value "%s" '
+                       'was ignored. The existing @CONTRACTID of the METS '
+                       'file, %s, was not overwritten.') % (contract,
+                                                            contractid)
         else:
             contractid = contract
         root_attribs['{%s}CONTRACTID' % fi_ns] = contractid
@@ -286,6 +292,10 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                'catalog version %s does not support @CONTRACTID.') % (
                    contract, to_catalog)
 
+    root.xpath('./mets:metsHdr', namespaces=NAMESPACES)[0].set(
+        'LASTMODDATE', datetime.datetime.utcnow().replace(
+            microsecond=0).isoformat() + 'Z')
+
     elems = []
     for elem in root.xpath('./*'):
         elems.append(elem)
@@ -293,6 +303,8 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     if not VERSIONS[cur_catalog]['KDK']:
         NAMESPACES['fi'] = ('http://digitalpreservation.fi/schemas'
                             '/mets/fi-extensions')
+    else:
+        NAMESPACES['fi'] = 'http://www.kdk.fi/standards/mets/kdk-extensions'
 
     new_mets = mets.mets(profile=root_attribs['PROFILE'], child_elements=elems,
                          namespaces=NAMESPACES)
@@ -300,7 +312,7 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     for attrib in root_attribs:
         new_mets.set(attrib, root_attribs[attrib])
 
-    return new_mets, root_attribs['OBJID'], contractid
+    return new_mets, root_attribs['OBJID']
 
 
 def remove_attributes(root):
@@ -426,15 +438,14 @@ def get_fi_ns(catalog):
     return fi_ns
 
 
-def transform_to_dip(root, cur_catalog, to_catalog, contract=None,
-                     objid=None):
+def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
     """
     1) Sets an @OBJID for the METS document
-    3) Removes unsupported attributes from the XML data
-    4) Updates / writes a new metsHdr block
+    2) Removes unsupported attributes from the XML data
+    3) Updates / writes a new metsHdr block
+    4) Sets the CATALOG attribute (because SPECIFICATION is removed)
     """
     fi_ns = get_fi_ns(cur_catalog)
-    profile = root.get('PROFILE')
 
     if not objid:
         objid = str(uuid4())
@@ -443,65 +454,12 @@ def transform_to_dip(root, cur_catalog, to_catalog, contract=None,
 
     root = set_dip_metshdr(root)
 
-    elems = []
-    for elem in root.xpath('./*'):
-        elems.append(elem)
-
-    label = ''
-    contentid = ''
-
-    if 'LABEL' in root.attrib:
-        label = root.get('LABEL')
-
-    if '{%s}CONTENTID' % fi_ns in root.attrib:
-        contentid = root.get('{%s}CONTENTID' % fi_ns)
-
-    new_mets = mets.mets(profile=profile, child_elements=elems,
-                         namespaces=NAMESPACES)
-
-    dip_mets = set_dip_root_attribs(root=new_mets, to_catalog=to_catalog,
-                                    cur_catalog=cur_catalog, objid=objid,
-                                    label=label, contentid=contentid,
-                                    contractid=contract)
-
-    return dip_mets, objid
-
-
-def set_dip_root_attribs(root, to_catalog, cur_catalog, objid, label=None,
-                         contentid=None, contractid=None):
-    """Sets the catalog version of the METS file as specified by the
-    command line arguments. The third digit of the version is always
-    set to the newest one as it represents minor changes.
-    Sets a new OBJID for the METS file.
-    If @label and @fi:CONTENTID exist they are also set.
-
-    :root: the mets root as xml
-    :to_catalog: the intended catalog version of the METS document
-    :cur_catalog: the current catalog version of the METS document
-    :objid: the OBJID of the METS document
-    :label: the LABEL attribute value
-    :contentid: The CONTENTID attribute value
-    :contractid: the CONTRACTID of the METS document
-
-    :returns: the METS root as xml
-    """
-
-    fi_ns = get_fi_ns(cur_catalog)
-
     root.set('{%s}CATALOG' % fi_ns, to_catalog + '.0')
-
+    if '{%s}SPECIFICATION' % fi_ns in root.attrib:
+        del root.attrib['{%s}SPECIFICATION' % fi_ns]
     root.set('OBJID', objid)
 
-    if label:
-        root.set('LABEL', label)
-
-    if contentid:
-        root.set('{%s}CONTENTID' % fi_ns, contentid)
-
-    if contractid:
-        root.set('{%s}CONTRACTID' % fi_ns, contractid)
-
-    return root
+    return root, objid
 
 
 if __name__ == '__main__':

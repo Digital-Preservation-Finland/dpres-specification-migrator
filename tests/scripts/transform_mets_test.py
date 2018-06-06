@@ -2,18 +2,18 @@
 
 import os
 from uuid import uuid4
-import lxml.etree as ET
-import pytest
 import copy
+import pytest
+
+import lxml.etree as ET
 
 import mets as m
 import premis as p
 import xml_helpers.utils as h
 
 from dpres_specification_migrator.scripts.transform_mets import main, \
-        fix_1_4_mets, remove_attributes, set_dip_root_attribs, \
-        parse_arguments, set_dip_metshdr, migrate_mets, serialize_mets, \
-        get_fi_ns
+        fix_1_4_mets, remove_attributes, parse_arguments, set_dip_metshdr, \
+        migrate_mets, serialize_mets, get_fi_ns
 
 
 TESTAIP_1_4 = 'tests/data/mets/mets_1_4.xml'
@@ -117,8 +117,8 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
             assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}%s' % cat_spec) == version
-            assert len(root.get('{http://digitalpreservation.fi/schemas/'
-                                'mets/fi-extensions}CONTRACTID')) > 0
+            assert root.get('{http://digitalpreservation.fi/schemas/'
+                            'mets/fi-extensions}CONTRACTID')
             assert root.get('PROFILE') == 'http://digitalpreservation.fi/' \
                                           'mets-profiles/cultural-heritage'
         else:
@@ -130,6 +130,91 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
                    'mets/fi-extensions}CONTRACTID' not in root.attrib
             assert root.get('PROFILE') == 'http://www.kdk.fi/kdk-mets-profile'
             assert 'CONTRACTID' not in new_attribs
+
+    else:
+        assert returncode == 117
+
+
+@pytest.mark.parametrize(
+    ["metsfile", "objid", "catalog", "valid"],
+    [
+        # Migrate 1.4 source, catalog not set, should pass
+        (TESTAIP_1_4, "testid11", None, True),
+        # Migrate 1.4 source to set version, should pass
+        (TESTAIP_1_4, "testid2", '1.5', True),
+        # Migrate 1.6 source, catalog not set, should pass
+        (TESTAIP_1_6, "testid13", None, True),
+        # Migrate 1.6 source to same version set excplicitly, should pass
+        (TESTAIP_1_6, "testid14", '1.6', True),
+        # Migrate 1.7 source to same version set excplicitly, should pass
+        (TESTAIP_1_7, "testid5", '1.7', True),
+    ])
+def test_dip_migration(testpath, metsfile, objid, catalog, valid):
+    """Tests that the script transform_mets outputs a METS document
+    and migrates the contents to a newer fi:CATALOG
+    version as specified in the command line arguments.
+    """
+    version = '1.7.0'
+    filename = objid + '.xml'
+
+    old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
+
+    contractid = 'urn:uuid:' + str(uuid4())
+    if catalog:
+        returncode = main([metsfile, '--objid', objid, '--to_version',
+                           catalog, '--workspace', testpath,
+                           '--contractid', contractid,
+                           '--record_status', 'dissemination',
+                           '--output_filename', filename])
+    else:
+        returncode = main([metsfile, '--objid', objid,
+                           '--workspace', testpath,
+                           '--contractid', contractid,
+                           '--record_status', 'dissemination',
+                           '--output_filename', filename])
+
+    if valid:
+        new_mets = os.path.join(testpath, filename)
+        assert os.path.isfile(new_mets)
+
+        root = ET.parse(new_mets).getroot()
+        assert len(root.xpath('./*')) == old_elem_count
+        if catalog:
+            version = catalog + '.0'
+
+        assert root.get('OBJID') == objid
+
+        assert 'MDTYPEVERSION' in root.xpath(
+            './/mets:mdWrap', namespaces=m.NAMESPACES)[1].attrib
+
+        assert 'ID' not in root.attrib
+        assert not root.xpath('@*[local-name() = "SPECIFICATION"]')
+        assert root.xpath('@*[local-name() = "CATALOG"]')
+
+        assert root.xpath('./mets:metsHdr/@RECORDSTATUS',
+                          namespaces=m.NAMESPACES)[0] == 'dissemination'
+
+        assert root.xpath('./mets:metsHdr/@CREATEDATE',
+                          namespaces=m.NAMESPACES)
+
+        assert not root.xpath('./mets:metsHdr/@LASTMODDATE',
+                              namespaces=m.NAMESPACES)
+
+        if version == '1.7.0':
+            assert root.get('{http://digitalpreservation.fi/schemas/'
+                            'mets/fi-extensions}CATALOG') == version
+            assert root.get('{http://digitalpreservation.fi/schemas/'
+                            'mets/fi-extensions}CONTRACTID')
+            assert root.get('PROFILE') == 'http://digitalpreservation.fi/' \
+                                          'mets-profiles/cultural-heritage'
+        else:
+            assert root.get('{http://www.kdk.fi/standards/'
+                            'mets/kdk-extensions}CATALOG') == version
+            assert '{http://www.kdk.fi/standards/' \
+                   'mets/kdk-extensions}CONTRACTID' not in root.attrib
+            assert '{http://digitalpreservation.fi/schemas/' \
+                   'mets/fi-extensions}CONTRACTID' not in root.attrib
+            assert root.get('PROFILE') == 'http://www.kdk.fi/kdk-mets-profile'
 
     else:
         assert returncode == 117
@@ -184,23 +269,6 @@ def test_remove_attributes():
         assert 'ID' not in mets_fptr.attrib
 
 
-def test_set_dip_root_attribs():
-    """Tests the set_dip_root_attribs function by asserting that the
-    @OBJID attribute has been changed in the testdata output and that
-    the @fi:CATALOG attribute has been set according to the parameter
-    supplied to the function.
-    """
-    root = ET.parse(TESTAIP_1_4).getroot()
-    old_objid = root.get('OBJID')
-    set_dip_root_attribs(root, '1.6', '1.4', 'test')
-    new_objid = root.get('OBJID')
-
-    assert new_objid == 'test'
-    assert old_objid != new_objid
-    assert root.get(
-        '{http://www.kdk.fi/standards/mets/kdk-extensions}CATALOG') == '1.6.0'
-
-
 def test_set_dip_metshdr():
     """Tests the set_methdr function by asserting that the
     @RECORDSTATUS attribute has been created and contains the correct
@@ -236,14 +304,14 @@ def test_migrate_mets():
            'xsi:schemaLocation="http://www.loc.gov/METS/ ' \
            'http://www.loc.gov/standards/mets/mets.xsd" ' \
            'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" ' \
-           'fi:CATALOG="1.6.0" LABEL="yyy"><mets:dmdSec/>' \
+           'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>' \
+           '<mets:dmdSec/>' \
            '<mets:amdSec><mets:digiprovMD><mets:mdRef ' \
            'OTHERMDTYPE="KDKPreservationPlan"/></mets:digiprovMD>' \
            '</mets:amdSec></mets:mets>'
     mets_xml = ET.fromstring(mets)
 
-    (dip, objid, contract) = migrate_mets(mets_xml, '1.7', '1.6',
-                                          contract='aaa')
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6', contract='aaa')
 
     assert objid == 'xxx'
     assert len(dip.attrib) == 6
@@ -253,7 +321,7 @@ def test_migrate_mets():
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
                                  'mets-profiles/cultural-heritage'
-    assert len(dip) == 2
+    assert len(dip) == 3
     assert dip.xpath('//mets:mdRef/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'FiPreservationPlan'
 
