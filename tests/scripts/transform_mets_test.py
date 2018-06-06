@@ -4,14 +4,16 @@ import os
 from uuid import uuid4
 import lxml.etree as ET
 import pytest
+import copy
 
 import mets as m
 import premis as p
 import xml_helpers.utils as h
 
 from dpres_specification_migrator.scripts.transform_mets import main, \
-        migrate_old_mets, remove_attributes, set_metsroot_attribs, \
-        parse_arguments, set_metshdr, migrate_mets, serialize_mets, get_fi_ns
+        fix_1_4_mets, remove_attributes, set_dip_root_attribs, \
+        parse_arguments, set_dip_metshdr, migrate_mets, serialize_mets, \
+        get_fi_ns
 
 
 TESTAIP_1_4 = 'tests/data/mets/mets_1_4.xml'
@@ -56,12 +58,24 @@ def test_parse_arguments():
         (TESTAIP_1_6, "testid10", '1.7', False, False),
     ])
 def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
-    """Tests that the script transform_mets outputs a AIP METS document
+    """Tests that the script transform_mets outputs a METS document
     and migrates the contents to a newer fi:CATALOG
-    version as specified in the command line arguments by checking that
-    a missing attribute as been written to the testdata output file.
+    version as specified in the command line arguments.
     """
     version = '1.7.0'
+
+    old_root = h.readfile(metsfile).getroot().attrib
+    old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
+    for attrib in old_root:
+        if len(attrib.split('}')) > 1:
+            old_root[attrib.split('}')[1]] = old_root[attrib]
+            del old_root[attrib]
+
+    if h.readfile(metsfile).getroot().xpath('@*[local-name() = "CATALOG"]'):
+        cat_spec = 'CATALOG'
+    else:
+        cat_spec = 'SPECIFICATION'
+
     if contract:
         contractid = 'urn:uuid:' + str(uuid4())
         if catalog:
@@ -77,37 +91,51 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
                            catalog, '--workspace', testpath])
 
     if valid:
-        dip_mets = os.path.join(testpath, 'mets.xml')
-        assert os.path.isfile(dip_mets)
+        new_mets = os.path.join(testpath, 'mets.xml')
+        assert os.path.isfile(new_mets)
 
-        root = ET.parse(dip_mets).getroot()
+        root = ET.parse(new_mets).getroot()
+        assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             version = catalog + '.0'
-        assert root.get('OBJID') == objid
+
+        new_root = copy.deepcopy(root)
+        new_attribs = new_root.attrib
+        for attrib in new_attribs:
+            if len(attrib.split('}')) > 1:
+                new_attribs[attrib.split('}')[1]] = new_attribs[attrib]
+                del new_attribs[attrib]
+        for attrib in old_root:
+            assert attrib in new_attribs
+            if attrib not in ['CATALOG', 'SPECIFICATION', 'PROFILE']:
+                assert old_root[attrib] == new_attribs[attrib]
+
         assert 'MDTYPEVERSION' in root.xpath(
             './/mets:mdWrap', namespaces=m.NAMESPACES)[1].attrib
 
         if version == '1.7.0':
+            assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
-                            'mets/fi-extensions}CATALOG') == version
+                            'mets/fi-extensions}%s' % cat_spec) == version
             assert len(root.get('{http://digitalpreservation.fi/schemas/'
                                 'mets/fi-extensions}CONTRACTID')) > 0
             assert root.get('PROFILE') == 'http://digitalpreservation.fi/' \
                                           'mets-profiles/cultural-heritage'
         else:
             assert root.get('{http://www.kdk.fi/standards/'
-                            'mets/kdk-extensions}CATALOG') == version
+                            'mets/kdk-extensions}%s' % cat_spec) == version
             assert '{http://www.kdk.fi/standards/' \
                    'mets/kdk-extensions}CONTRACTID' not in root.attrib
             assert '{http://digitalpreservation.fi/schemas/' \
                    'mets/fi-extensions}CONTRACTID' not in root.attrib
             assert root.get('PROFILE') == 'http://www.kdk.fi/kdk-mets-profile'
+            assert 'CONTRACTID' not in new_attribs
 
     else:
         assert returncode == 117
 
 
-def test_migrate_old_mets():
+def test_fix_1_4_mets():
     """Tests the migrate_old_mets function by asserting that the
     function has modified the METS testdata properly.
     Asserts that the @MDTYPEVERSION attribute is written into
@@ -117,7 +145,7 @@ def test_migrate_old_mets():
     attribute value is moved from MDTYPE to OTHERMDTYPE.
     """
     root = ET.parse(TESTAIP_1_4).getroot()
-    migrate_old_mets(root)
+    fix_1_4_mets(root)
 
     assert 'MDTYPEVERSION' in root.xpath(
         './mets:dmdSec/mets:mdWrap', namespaces=m.NAMESPACES)[0].attrib
@@ -156,15 +184,15 @@ def test_remove_attributes():
         assert 'ID' not in mets_fptr.attrib
 
 
-def test_set_metsroot_attribs():
-    """Tests the set_metsroot_attribs function by asserting that the
+def test_set_dip_root_attribs():
+    """Tests the set_dip_root_attribs function by asserting that the
     @OBJID attribute has been changed in the testdata output and that
     the @fi:CATALOG attribute has been set according to the parameter
     supplied to the function.
     """
     root = ET.parse(TESTAIP_1_4).getroot()
     old_objid = root.get('OBJID')
-    set_metsroot_attribs(root, '1.6', '1.4', 'test')
+    set_dip_root_attribs(root, '1.6', '1.4', 'test')
     new_objid = root.get('OBJID')
 
     assert new_objid == 'test'
@@ -173,14 +201,14 @@ def test_set_metsroot_attribs():
         '{http://www.kdk.fi/standards/mets/kdk-extensions}CATALOG') == '1.6.0'
 
 
-def test_set_metshdr():
+def test_set_dip_metshdr():
     """Tests the set_methdr function by asserting that the
     @RECORDSTATUS attribute has been created and contains the correct
     value, that the mets:agent/mets:name element contains the correct
     text and that the LASTMODDATE attribute is not present.
     """
     root = ET.parse(TESTAIP_1_4).getroot()
-    new_root = set_metshdr(root, record_status='dissemination')
+    new_root = set_dip_metshdr(root)
     hdr = new_root.xpath('./mets:metsHdr', namespaces=m.NAMESPACES)[0]
 
     assert hdr.get('RECORDSTATUS') == 'dissemination'
@@ -214,14 +242,14 @@ def test_migrate_mets():
            '</mets:amdSec></mets:mets>'
     mets_xml = ET.fromstring(mets)
 
-    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6', objid='zzz',
-                                contract='aaa')
+    (dip, objid, contract) = migrate_mets(mets_xml, '1.7', '1.6',
+                                          contract='aaa')
 
-    assert objid == 'zzz'
+    assert objid == 'xxx'
     assert len(dip.attrib) == 6
     assert dip.get('{%s}CONTRACTID' % fi_ns) == 'aaa'
     assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.0'
-    assert dip.get('OBJID') == 'zzz'
+    assert dip.get('OBJID') == 'xxx'
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
                                  'mets-profiles/cultural-heritage'

@@ -108,13 +108,16 @@ def main(arguments=None):
         return 117
 
     if VERSIONS[version]['fix_old']:
-        root = migrate_old_mets(root)
+        root = fix_1_4_mets(root)
 
-    (migrated_mets, objid) = migrate_mets(root=root, cur_catalog=version,
-                                          to_catalog=args.to_version,
-                                          objid=args.objid,
-                                          contract=args.contractid,
-                                          record_status=args.record_status)
+    (migrated_mets, objid, contract) = migrate_mets(
+        root=root, cur_catalog=version, to_catalog=args.to_version,
+        contract=args.contractid)
+
+    if args.record_status == 'dissemination':
+        migrated_mets, objid = transform_to_dip(
+            migrated_mets, cur_catalog=version, to_catalog=args.to_version,
+            objid=args.objid, contract=contract)
 
     mets_str = serialize_mets(migrated_mets)
 
@@ -150,7 +153,7 @@ def parse_arguments(arguments):
     return parser.parse_args(arguments)
 
 
-def migrate_old_mets(root):
+def fix_1_4_mets(root):
     """Migrates from catalog version 1.4 or 1.4.1 to newer by writing
     the following changes into the mets file:
     - adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
@@ -226,57 +229,41 @@ def migrate_old_mets(root):
     return root
 
 
-def migrate_mets(root, to_catalog, cur_catalog, objid=None, contract=None,
-                 record_status=None):
+def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     """Migrates the METS document from the METS data in XML.
 
-    1) Sets an @OBJID for the METS document
-    2) Sets the correct profile for the METS document
-    3) Removes unsupported attributes from the XML data
-    4) Updates / writes a new metsHdr block
-    5) Writes a new mets root element for the METS document
-    6) Appends all child elements from the supplied root element
-       to the new METS
-    7) Adds CONTRACTID and migrates old KDK specific profile data if
+    1) Collects all attributes from the METS root element
+    1) Sets the correct profile for the METS document
+    2) Sets the correct CATALOG or SPECIFICATION
+    3) Adds CONTRACTID and migrates old KDK specific profile data if
        to_catalog specifies a newer non-KDK profile
+    4) Writes a new mets root element for the METS document
+    5) Appends all child elements from the supplied root element
+       to the new METS
+    6) Writes the updated attribute set to the new root
 
     :root: the mets root as xml
     :to_catalog: the intended catalog version of the METS document
     :cur_catalog: the current catalog version of the METS document
-    :objid: the OBJID of the METS document
-    :contractid: the CONTRACTID of the METS document
+    :contract: the CONTRACTID of the METS document
 
-    :returns: the METS root as xml and the OBJID as string
+    :returns: a METS root as xml
     """
     fi_ns = get_fi_ns(cur_catalog)
 
-    if not objid:
-        objid = str(uuid4())
+    root_attribs = root.attrib
 
-    profile = root.get('PROFILE')
-    if profile == 'http://www.kdk.fi/kdk-mets-profile' \
+    if root_attribs['PROFILE'] == 'http://www.kdk.fi/kdk-mets-profile' \
             and not VERSIONS[to_catalog]['KDK']:
-        profile = 'http://digitalpreservation.fi/' \
+        root_attribs['PROFILE'] = 'http://digitalpreservation.fi/' \
                   'mets-profiles/cultural-heritage'
 
-    root = remove_attributes(root)
+    if '{%s}CATALOG' % fi_ns in root_attribs:
+        root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
+    else:
+        root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
 
-    root = set_metshdr(root, record_status)
-
-    elems = []
-    for elem in root.xpath('./*'):
-        elems.append(elem)
-
-    label = ''
-    contentid = ''
     contractid = ''
-
-    if 'LABEL' in root.attrib:
-        label = root.get('LABEL')
-
-    if '{%s}CONTENTID' % fi_ns in root.attrib:
-        contentid = root.get('{%s}CONTENTID' % fi_ns)
-
     if not VERSIONS[to_catalog]['KDK']:
         if '{%s}CONTRACTID' % fi_ns in root.attrib:
             contractid = root.get('{%s}CONTRACTID' % fi_ns)
@@ -287,6 +274,7 @@ def migrate_mets(root, to_catalog, cur_catalog, objid=None, contract=None,
                                                      contractid)
         else:
             contractid = contract
+        root_attribs['{%s}CONTRACTID' % fi_ns] = contractid
 
         for elem in root.xpath(
                 './mets:amdSec/mets:digiprovMD/'
@@ -298,19 +286,21 @@ def migrate_mets(root, to_catalog, cur_catalog, objid=None, contract=None,
                'catalog version %s does not support @CONTRACTID.') % (
                    contract, to_catalog)
 
+    elems = []
+    for elem in root.xpath('./*'):
+        elems.append(elem)
+
     if not VERSIONS[cur_catalog]['KDK']:
         NAMESPACES['fi'] = ('http://digitalpreservation.fi/schemas'
                             '/mets/fi-extensions')
-    new_mets = mets.mets(profile=profile, child_elements=elems,
+
+    new_mets = mets.mets(profile=root_attribs['PROFILE'], child_elements=elems,
                          namespaces=NAMESPACES)
 
-    migrated_mets = set_metsroot_attribs(root=new_mets, to_catalog=to_catalog,
-                                         cur_catalog=cur_catalog, objid=objid,
-                                         label=label,
-                                         contentid=contentid,
-                                         contractid=contractid)
+    for attrib in root_attribs:
+        new_mets.set(attrib, root_attribs[attrib])
 
-    return migrated_mets, objid
+    return new_mets, root_attribs['OBJID'], contractid
 
 
 def remove_attributes(root):
@@ -372,7 +362,7 @@ def remove_attributes(root):
     return root
 
 
-def set_metshdr(root, record_status=None):
+def set_dip_metshdr(root):
     """Sets the new mets metsHdr. Changes the CREATEDATE attribute and
     optionally the RECORDSTATUS attribute. Sets the agent responsible for
     the creation of the transformed mets file. Removes other attributes
@@ -390,14 +380,94 @@ def set_metshdr(root, record_status=None):
             'CREATEDATE',
             datetime.datetime.utcnow().replace(
                 microsecond=0).isoformat() + 'Z')
-        if record_status:
-            hdr.set('RECORDSTATUS', record_status)
+        hdr.set('RECORDSTATUS', 'dissemination')
         if 'LASTMODDATE' in hdr.attrib:
             del hdr.attrib['LASTMODDATE']
     return root
 
 
-def set_metsroot_attribs(root, to_catalog, cur_catalog, objid, label=None,
+def serialize_mets(root):
+    """Serializes the METS XML data to string. Then replaces some
+    namespace declarations, since that can't be done in lxml.
+
+    :returns: METS data as string
+    """
+
+    mets_str = h.serialize(root)
+
+    if root.xpath("//mets:mdWrap[@MDTYPE='TEXTMD']",
+                  namespaces=NAMESPACES):
+        mets_str = mets_str.replace(
+            'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
+            'xmlns:textmd="info:lc/xmlns/textMD-v3"')
+
+    version = root.xpath('@*[local-name() = "CATALOG"] | '
+                         '@*[local-name() = "SPECIFICATION"]')[0]
+
+    if version == '1.7.0':
+        mets_str = mets_str.replace(
+            'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
+            'xmlns:fi="http://digitalpreservation.fi/'
+            'schemas/mets/fi-extensions"')
+
+    return mets_str
+
+
+def get_fi_ns(catalog):
+    """Returns the namespace for the fi: extension. The value depends
+    on catalog version of the METS document.
+    """
+    fi_ns = 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
+
+    if catalog in VERSIONS:
+        if VERSIONS[catalog]['KDK']:
+            fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
+
+    return fi_ns
+
+
+def transform_to_dip(root, cur_catalog, to_catalog, contract=None,
+                     objid=None):
+    """
+    1) Sets an @OBJID for the METS document
+    3) Removes unsupported attributes from the XML data
+    4) Updates / writes a new metsHdr block
+    """
+    fi_ns = get_fi_ns(cur_catalog)
+    profile = root.get('PROFILE')
+
+    if not objid:
+        objid = str(uuid4())
+
+    root = remove_attributes(root)
+
+    root = set_dip_metshdr(root)
+
+    elems = []
+    for elem in root.xpath('./*'):
+        elems.append(elem)
+
+    label = ''
+    contentid = ''
+
+    if 'LABEL' in root.attrib:
+        label = root.get('LABEL')
+
+    if '{%s}CONTENTID' % fi_ns in root.attrib:
+        contentid = root.get('{%s}CONTENTID' % fi_ns)
+
+    new_mets = mets.mets(profile=profile, child_elements=elems,
+                         namespaces=NAMESPACES)
+
+    dip_mets = set_dip_root_attribs(root=new_mets, to_catalog=to_catalog,
+                                    cur_catalog=cur_catalog, objid=objid,
+                                    label=label, contentid=contentid,
+                                    contractid=contract)
+
+    return dip_mets, objid
+
+
+def set_dip_root_attribs(root, to_catalog, cur_catalog, objid, label=None,
                          contentid=None, contractid=None):
     """Sets the catalog version of the METS file as specified by the
     command line arguments. The third digit of the version is always
@@ -432,43 +502,6 @@ def set_metsroot_attribs(root, to_catalog, cur_catalog, objid, label=None,
         root.set('{%s}CONTRACTID' % fi_ns, contractid)
 
     return root
-
-
-def serialize_mets(root):
-    """Serializes the METS XML data to string. Then replaces some
-    namespace declarations, since that can't be done in lxml.
-
-    :returns: METS data as string
-    """
-
-    mets_str = h.serialize(root)
-
-    if root.xpath("//mets:mdWrap[@MDTYPE='TEXTMD']",
-                  namespaces=NAMESPACES):
-        mets_str = mets_str.replace(
-            'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
-            'xmlns:textmd="info:lc/xmlns/textMD-v3"')
-
-    if root.xpath('@*[local-name() = "CATALOG"]')[0] == '1.7.0':
-        mets_str = mets_str.replace(
-            'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
-            'xmlns:fi="http://digitalpreservation.fi/'
-            'schemas/mets/fi-extensions"')
-
-    return mets_str
-
-
-def get_fi_ns(catalog):
-    """Returns the namespace for the fi: extension. The value depends
-    on catalog version of the METS document.
-    """
-    fi_ns = 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
-
-    if catalog in VERSIONS:
-        if VERSIONS[catalog]['KDK']:
-            fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
-
-    return fi_ns
 
 
 if __name__ == '__main__':
