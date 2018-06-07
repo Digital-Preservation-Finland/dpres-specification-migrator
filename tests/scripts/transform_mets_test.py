@@ -13,10 +13,11 @@ import xml_helpers.utils as h
 
 from dpres_specification_migrator.scripts.transform_mets import main, \
         fix_1_4_mets, remove_attributes, parse_arguments, set_dip_metshdr, \
-        migrate_mets, serialize_mets, get_fi_ns
+        migrate_mets, serialize_mets, get_fi_ns, move_mix, NAMESPACES
 
 
 TESTAIP_1_4 = 'tests/data/mets/mets_1_4.xml'
+TESTAIP_1_4_2 = 'tests/data/mets/mets_1_4_2.xml'
 TESTAIP_1_6 = 'tests/data/mets/mets_1_6.xml'
 TESTAIP_1_7 = 'tests/data/mets/mets_1_7.xml'
 
@@ -258,6 +259,34 @@ def test_fix_1_4_mets():
     assert format_name == 'text/plain; charset=UTF-8'
 
 
+def test_fix_1_4_premis_extensions():
+    """Tests the migrate_old_mets function with both textMD and
+    MIX metadata wrapped inside the premis:objectCharacteristicsExtension
+    metadata by asserting that the function has moved the MIX metadata
+    from the premis and that the textMD charset has been appended to the
+    premis:formatName.
+    """
+    root = ET.parse(TESTAIP_1_4_2).getroot()
+    techmds = len(root.xpath('./mets:amdSec/mets:techMD',
+                             namespaces=m.NAMESPACES))
+    fix_1_4_mets(root)
+
+    assert len(root.xpath('./mets:amdSec/mets:techMD',
+                          namespaces=m.NAMESPACES)) == techmds + 1
+
+    assert root.xpath(
+        './mets:amdSec/mets:techMD/mets:mdWrap',
+        namespaces=m.NAMESPACES)[2].get('MDTYPE') == 'NISOIMG'
+
+    assert root.xpath(
+        './mets:amdSec/mets:techMD/mets:mdWrap',
+        namespaces=m.NAMESPACES)[2].get('MDTYPEVERSION') == '2.0'
+
+    assert root.xpath('.//premis:formatName',
+                      namespaces=NAMESPACES)[1].text == \
+        'text/plain; charset=UTF-8'
+
+
 def test_remove_attributes():
     """Tests the remove_attributes function by running the function with
     testdata and asserting that selected attributes have been removed
@@ -380,3 +409,44 @@ def test_get_fi_ns():
         '1.6') == 'http://www.kdk.fi/standards/mets/kdk-extensions'
     assert get_fi_ns(
         'foo') == 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
+
+
+def test_move_mix():
+    """Tests the move_mix function by asserting that the mix
+    has been moved to a techMD metadata block, that the file
+    in fileSec links to the metadata and that it doesn't exist
+    within the premis metadata anymore.
+    """
+    root = h.readfile(TESTAIP_1_4_2).getroot()
+
+    for premis_mix in root.xpath(
+            './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
+            'premis:objectCharacteristics/'
+            'premis:objectCharacteristicsExtension/mix:mix',
+            namespaces=NAMESPACES):
+
+        root = move_mix(root, premis_mix)
+
+    count = 0
+    for mixdata in root.xpath(".//mets:mdWrap[@MDTYPE='NISOIMG']",
+                              namespaces=m.NAMESPACES):
+
+        count += 1
+        techmd_id = mixdata.xpath('./ancestor::mets:techMD',
+                                  namespaces=m.NAMESPACES)[0].get('ID')
+
+    assert techmd_id
+    assert count == 1
+
+    for metsfile in root.xpath('./mets:fileSec//mets:file',
+                               namespaces=m.NAMESPACES):
+        if techmd_id in metsfile.get('ADMID'):
+            fileid = metsfile.get('ID')
+
+    assert fileid == 'file001'
+
+    for premis_extension in root.xpath(
+            './/premis:objectCharacteristicsExtension',
+            namespaces=NAMESPACES):
+        for elem in premis_extension:
+            assert elem.tag != '{http://www.loc.gov/mix/v20}mix'
