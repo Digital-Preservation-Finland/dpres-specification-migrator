@@ -211,6 +211,20 @@ def fix_1_4_mets(root):
             new_formatname = formatname.text + '; charset=' + charset
             formatname.text = new_formatname
 
+    for premis_textmd in root.xpath(
+            './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
+            'premis:objectCharacteristics/'
+            'premis:objectCharacteristicsExtension/textmd:textMD',
+            namespaces=NAMESPACES):
+        techmd_id = premis_textmd.xpath('./ancestor::mets:techMD',
+                                        namespaces=NAMESPACES)[0].get('ID')
+        charset = premis_textmd.xpath(".//*[local-name() = 'charset']")[0].text
+        format_name = premis_textmd.xpath(
+            './ancestor::premis:objectCharacteristics//premis:formatName',
+            namespaces=NAMESPACES)[0]
+        if ';' not in format_name.text:
+            format_name.text = format_name.text + '; charset=' + charset
+
     structmap = root.xpath('./mets:structMap', namespaces=NAMESPACES)[0]
     if len(root.xpath('./mets:structMap/mets:div',
                       namespaces=NAMESPACES)) > 1:
