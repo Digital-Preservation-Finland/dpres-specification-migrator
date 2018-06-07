@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import datetime
+import copy
 
 from uuid import uuid4
 
@@ -216,14 +217,31 @@ def fix_1_4_mets(root):
             'premis:objectCharacteristics/'
             'premis:objectCharacteristicsExtension/textmd:textMD',
             namespaces=NAMESPACES):
-        techmd_id = premis_textmd.xpath('./ancestor::mets:techMD',
-                                        namespaces=NAMESPACES)[0].get('ID')
         charset = premis_textmd.xpath(".//*[local-name() = 'charset']")[0].text
         format_name = premis_textmd.xpath(
             './ancestor::premis:objectCharacteristics//premis:formatName',
             namespaces=NAMESPACES)[0]
         if ';' not in format_name.text:
             format_name.text = format_name.text + '; charset=' + charset
+
+    for premis_mix in root.xpath(
+            './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
+            'premis:objectCharacteristics/'
+            'premis:objectCharacteristicsExtension/mix:mix',
+            namespaces=NAMESPACES):
+
+        root = move_mix(root, premis_mix)
+
+    list_amdsec = []
+    mets_amdsec = root.xpath('./mets:amdSec', namespaces=NAMESPACES)[0]
+    for elem in mets_amdsec:
+        list_amdsec.append(copy.deepcopy(elem))
+        mets_amdsec.remove(elem)
+
+    list_amdsec.sort(key=mets.order)
+
+    for elem in list_amdsec:
+        mets_amdsec.append(elem)
 
     structmap = root.xpath('./mets:structMap', namespaces=NAMESPACES)[0]
     if len(root.xpath('./mets:structMap/mets:div',
@@ -244,6 +262,41 @@ def fix_1_4_mets(root):
             mdwrap.set('MDTYPE', 'OTHER')
             mdwrap.set('OTHERMDTYPE', 'METSRIGHTS')
             mdwrap.set('MDTYPEVERSION', 'n/a')
+
+    return root
+
+
+def move_mix(root, premis_mix):
+    """Moves current MIX metadata block from
+    premis:objectCharacteristicsExtension to an own mets:techMD
+    block and appends the created ID of the the new techMD block
+    to the file's AMDID attribute in the mets:fileSec.
+
+    :root: the METS data as XML
+    :premis_mix: the MIX metadata within premis
+
+    :returns: the METS data root
+    """
+
+    mix_id = '_' + str(uuid4())
+    techmd_id = premis_mix.xpath('./ancestor::mets:techMD',
+                                 namespaces=NAMESPACES)[0].get('ID')
+    amdsec = root.xpath('.//mets:amdSec', namespaces=NAMESPACES)[0]
+
+    xml_data = mets.xmldata(child_elements=[copy.deepcopy(premis_mix)])
+    md_wrap = mets.mdwrap('NISOIMG', '2.0', child_elements=[xml_data])
+    techmd = mets.techmd(mix_id, child_elements=[md_wrap])
+    amdsec.append(techmd)
+
+    for mets_file in root.xpath('./mets:fileSec//mets:file',
+                                namespaces=NAMESPACES):
+        if techmd_id in mets_file.get('ADMID'):
+            mets_file.set('ADMID', mets_file.get('ADMID') + ' ' + mix_id)
+
+    premis_extension = premis_mix.xpath(
+        './ancestor::premis:objectCharacteristicsExtension',
+        namespaces=NAMESPACES)[0]
+    premis_extension.getparent().remove(premis_extension)
 
     return root
 
@@ -280,7 +333,7 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
 
     if '{%s}CATALOG' % fi_ns in root_attribs:
         root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
-    else:
+    if '{%s}SPECIFICATION' % fi_ns in root_attribs:
         root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
 
     contractid = ''
@@ -421,11 +474,9 @@ def serialize_mets(root):
 
     mets_str = h.serialize(root)
 
-    if root.xpath("//mets:mdWrap[@MDTYPE='TEXTMD']",
-                  namespaces=NAMESPACES):
-        mets_str = mets_str.replace(
-            'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
-            'xmlns:textmd="info:lc/xmlns/textMD-v3"')
+    mets_str = mets_str.replace(
+        'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
+        'xmlns:textmd="info:lc/xmlns/textMD-v3"')
 
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0]
