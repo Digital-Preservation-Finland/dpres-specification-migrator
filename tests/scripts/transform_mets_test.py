@@ -13,11 +13,13 @@ import xml_helpers.utils as h
 
 from dpres_specification_migrator.scripts.transform_mets import main, \
         fix_1_4_mets, remove_attributes, parse_arguments, set_dip_metshdr, \
-        migrate_mets, serialize_mets, get_fi_ns, move_mix, NAMESPACES
+        migrate_mets, serialize_mets, get_fi_ns, move_mix, \
+        set_charset_from_textmd, NAMESPACES
 
 
 TESTAIP_1_4 = 'tests/data/mets/mets_1_4.xml'
-TESTAIP_1_4_2 = 'tests/data/mets/mets_1_4_2.xml'
+TESTAIP_1_4_TEXTMD = 'tests/data/mets/mets_1_4_textmd.xml'
+TESTAIP_1_4_EXTENSIONS = 'tests/data/mets/mets_1_4_extensions.xml'
 TESTAIP_1_6 = 'tests/data/mets/mets_1_6.xml'
 TESTAIP_1_7 = 'tests/data/mets/mets_1_7.xml'
 
@@ -266,7 +268,7 @@ def test_fix_1_4_premis_extensions():
     from the premis and that the textMD charset has been appended to the
     premis:formatName.
     """
-    root = ET.parse(TESTAIP_1_4_2).getroot()
+    root = ET.parse(TESTAIP_1_4_EXTENSIONS).getroot()
     techmds = len(root.xpath('./mets:amdSec/mets:techMD',
                              namespaces=m.NAMESPACES))
     fix_1_4_mets(root)
@@ -417,7 +419,7 @@ def test_move_mix():
     in fileSec links to the metadata and that it doesn't exist
     within the premis metadata anymore.
     """
-    root = h.readfile(TESTAIP_1_4_2).getroot()
+    root = h.readfile(TESTAIP_1_4_EXTENSIONS).getroot()
 
     for premis_mix in root.xpath(
             './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
@@ -450,3 +452,20 @@ def test_move_mix():
             namespaces=NAMESPACES):
         for elem in premis_extension:
             assert elem.tag != '{http://www.loc.gov/mix/v20}mix'
+
+
+def test_set_charset_from_textmd():
+    """Tests the set_charset_from_textmd function by asserting that
+    the charset from the textMD metadata as been appended to the
+    premis:formatName element.
+    """
+    root = h.readfile(TESTAIP_1_4_TEXTMD).getroot()
+
+    new_root = set_charset_from_textmd(root)
+
+    assert new_root.xpath('.//premis:formatName',
+                          namespaces=NAMESPACES)[0].text == \
+        'text/plain; charset=UTF-16'
+    assert new_root.xpath('.//premis:formatName',
+                          namespaces=NAMESPACES)[1].text == \
+        'text/plain; charset=UTF-8'

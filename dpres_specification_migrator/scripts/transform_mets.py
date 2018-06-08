@@ -12,71 +12,16 @@ import copy
 from uuid import uuid4
 
 import mets
-import xml_helpers.utils as h
-from dpres_specification_migrator.utils import RECORD_STATUS_TYPES
-
-
-NAMESPACES = {
-    'mets': 'http://www.loc.gov/METS/',
-    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-    'xlink': 'http://www.w3.org/1999/xlink',
-    'fi': 'http://www.kdk.fi/standards/mets/kdk-extensions',
-    'premis': 'info:lc/xmlns/premis-v2',
-    'dc': 'http://purl.org/dc/elements/1.1/',
-    'dcterms': 'http://purl.org/dc/terms/',
-    'dcmitype': 'http://purl.org/dc/dcmitype/',
-    'addml': 'http://www.arkivverket.no/standarder/addml',
-    'audiomd': 'http://www.loc.gov/audioMD/',
-    'videomd': 'http://www.loc.gov/videoMD/',
-    'textmd': 'info:lc/xmlns/textMD-v3',
-    'textmd': 'http://www.kdk.fi/standards/textmd',
-    'mix': 'http://www.loc.gov/mix/v20',
-    'marc21': 'http://www.loc.gov/MARC21/slim',
-    'mods': 'http://www.loc.gov/mods/v3',
-    'ead': 'urn:isbn:1-931666-22-9',
-    'eac': 'urn:isbn:1-931666-33-4',
-    'ead3': 'http://ead3.archivists.org/schema/',
-    'vra': 'http://www.vraweb.org/vracore4.htm',
-    'lido': 'http://www.lido-schema.org',
-    'ddicb21': 'http://www.icpsr.umich.edu/DDI',
-    'ddicb25': 'ddi:codebook:2_5',
-    'ddilc31': 'ddi:instance:3_1',
-    'ddilc32': 'ddi:instance:3_2'
-}
-
-VERSIONS = {
-    '1.4': {
-        'order': 1,
-        'fix_old': True,
-        'supported': False,
-        'KDK': True
-        },
-    '1.5': {
-        'order': 2,
-        'fix_old': False,
-        'supported': True,
-        'KDK': True
-        },
-    '1.6': {
-        'order': 3,
-        'fix_old': False,
-        'supported': True,
-        'KDK': True
-        },
-    '1.7': {
-        'order': 4,
-        'fix_old': False,
-        'supported': True,
-        'KDK': False
-        }
-    }
+import xml_helpers.utils as xml_helpers
+from dpres_specification_migrator.dicts import RECORD_STATUS_TYPES, \
+    NAMESPACES, VERSIONS
 
 
 def main(arguments=None):
     """The main method for transform_mets."""
     args = parse_arguments(arguments)
 
-    root = h.readfile(args.filepath).getroot()
+    root = xml_helpers.readfile(args.filepath).getroot()
 
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0][:3]
@@ -112,6 +57,8 @@ def main(arguments=None):
         print ('Warning: the argument objid with the value "%s" was ignored. '
                'METS OBJID was not changed in the migration to a newer '
                'version of the specifications.' % args.objid)
+
+    NAMESPACES['textmd'] = 'info:lc/xmlns/textMD-v3'
 
     if VERSIONS[version]['fix_old']:
         root = fix_1_4_mets(root)
@@ -167,6 +114,8 @@ def fix_1_4_mets(root):
     - adds a new div as parent div if structmap has several child divs
     - sets METSRIGHTS as OTHERMDTYPE
     """
+    NAMESPACES['textmd'] = 'http://www.kdk.fi/standards/textmd'
+
     mdtypeversions = {'PREMIS:OBJECT': '2.3', 'PREMIS:RIGHTS': '2.3',
                       'PREMIS:EVENT': '2.3', 'PREMIS:AGENT': '2.3',
                       'TEXTMD': '3.01', 'DC': '1.1', 'NISOIMG': '2.0',
@@ -182,47 +131,7 @@ def fix_1_4_mets(root):
         version = mdtypeversions[mdtype]
         elem.set('MDTYPEVERSION', version)
 
-    textmds = {}
-    for techmd in root.xpath('./mets:amdSec/mets:techMD',
-                             namespaces=NAMESPACES):
-        if techmd.xpath("./mets:mdWrap[@MDTYPE='TEXTMD']",
-                        namespaces=NAMESPACES):
-            charset = techmd.xpath(".//*[local-name() = 'charset']")[0].text
-            techmd_id = techmd.get('ID')
-            textmds[techmd_id] = charset
-
-    textfiles = {}
-    for mets_file in root.xpath('./mets:fileSec//mets:file',
-                                namespaces=NAMESPACES):
-        for key in textmds:
-            if key in mets_file.get('ADMID'):
-                charset = textmds[key]
-                for admid in mets_file.get('ADMID').split(' '):
-                    textfiles[admid] = charset
-
-    for textfile in root.xpath('./mets:amdSec/mets:techMD',
-                               namespaces=NAMESPACES):
-        if (textfile.get('ID') in textfiles.keys() and
-                textfile.xpath("./mets:mdWrap[@MDTYPE='PREMIS:OBJECT']",
-                               namespaces=NAMESPACES)):
-            file_id = textfile.get('ID')
-            charset = textfiles[file_id]
-            formatname = textfile.xpath('.//premis:formatName',
-                                        namespaces=NAMESPACES)[0]
-            new_formatname = formatname.text + '; charset=' + charset
-            formatname.text = new_formatname
-
-    for premis_textmd in root.xpath(
-            './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
-            'premis:objectCharacteristics/'
-            'premis:objectCharacteristicsExtension/textmd:textMD',
-            namespaces=NAMESPACES):
-        charset = premis_textmd.xpath(".//*[local-name() = 'charset']")[0].text
-        format_name = premis_textmd.xpath(
-            './ancestor::premis:objectCharacteristics//premis:formatName',
-            namespaces=NAMESPACES)[0]
-        if ';' not in format_name.text:
-            format_name.text = format_name.text + '; charset=' + charset
+    root = set_charset_from_textmd(root)
 
     for premis_mix in root.xpath(
             './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
@@ -262,6 +171,60 @@ def fix_1_4_mets(root):
             mdwrap.set('MDTYPE', 'OTHER')
             mdwrap.set('OTHERMDTYPE', 'METSRIGHTS')
             mdwrap.set('MDTYPEVERSION', 'n/a')
+
+    return root
+
+
+def set_charset_from_textmd(root):
+    """Appends the charset from textMD metadata to the
+    premis:formatName element if it is missing.
+    The function will search for textMD metadata both
+    as a separate techMD metadata block within mets:amdSec
+    and within the premis:objectCharacteristicsExtension
+    metadata for the techMD in question."""
+    textmds = {}
+    for techmd in root.xpath('./mets:amdSec/mets:techMD',
+                             namespaces=NAMESPACES):
+        if techmd.xpath("./mets:mdWrap[@MDTYPE='TEXTMD']",
+                        namespaces=NAMESPACES):
+            charset = techmd.xpath(".//*[local-name() = 'charset']")[0].text
+            techmd_id = techmd.get('ID')
+            textmds[techmd_id] = charset
+
+    textfiles = {}
+    for mets_file in root.xpath('./mets:fileSec//mets:file',
+                                namespaces=NAMESPACES):
+        for key in textmds:
+            if key in mets_file.get('ADMID'):
+                charset = textmds[key]
+                for admid in mets_file.get('ADMID').split(' '):
+                    textfiles[admid] = charset
+
+    count = 0
+    for textfile in root.xpath('./mets:amdSec/mets:techMD',
+                               namespaces=NAMESPACES):
+        if (textfile.get('ID') in textfiles.keys() and
+                textfile.xpath("./mets:mdWrap[@MDTYPE='PREMIS:OBJECT']",
+                               namespaces=NAMESPACES)):
+            count += 1
+            file_id = textfile.get('ID')
+            charset = textfiles[file_id]
+            formatname = textfile.xpath('.//premis:formatName',
+                                        namespaces=NAMESPACES)[0]
+            if '; charset' not in formatname.text:
+                formatname.text = formatname.text + '; charset=' + charset
+
+    for premis_textmd in root.xpath(
+            './mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/premis:object/'
+            'premis:objectCharacteristics/'
+            'premis:objectCharacteristicsExtension/textmd:textMD',
+            namespaces=NAMESPACES):
+        charset = premis_textmd.xpath(".//*[local-name() = 'charset']")[0].text
+        format_name = premis_textmd.xpath(
+            './ancestor::premis:objectCharacteristics//premis:formatName',
+            namespaces=NAMESPACES)[0]
+        if '; charset' not in format_name.text:
+            format_name.text = format_name.text + '; charset=' + charset
 
     return root
 
@@ -472,7 +435,7 @@ def serialize_mets(root):
     :returns: METS data as string
     """
 
-    mets_str = h.serialize(root)
+    mets_str = xml_helpers.serialize(root)
 
     mets_str = mets_str.replace(
         'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
