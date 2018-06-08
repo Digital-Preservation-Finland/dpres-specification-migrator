@@ -1,6 +1,7 @@
 """Module for migrating an information package METS document into a
 newer version of the specifications for the Finnish National Digital
-Preservation Services.
+Preservation Services. Also possible to change the RECORDSTATUS of the
+METS document to create a dissemination information package.
 """
 
 import os
@@ -111,6 +112,9 @@ def fix_1_4_mets(root):
     the following changes into the mets file:
     - adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
     - writes charset from textMD to premis:formatName for text files
+    - moves MIX metadata blocks from  the
+      premis:objectCharacteristicsExtension metadata to an own techMD
+      metadata block
     - adds a new div as parent div if structmap has several child divs
     - sets METSRIGHTS as OTHERMDTYPE
     """

@@ -20,8 +20,8 @@ Source0:        %{file_prefix}-v%{file_version}%{?file_release_tag}-%{file_build
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-Requires:       python python-setuptools python-magic python-lxml python-scandir
-Requires:       mets premis xml-helpers dpres-ipt dpres-signature
+Requires:       python python-setuptools python-lxml
+Requires:       mets premis xml-helpers
 
 %description
 Tools for migrating information packages (SIPs and DIPs) to newer versions of the
