@@ -41,14 +41,14 @@ transform_mets
 
 The script can take the following options:
 
-    `--output_filename`: specify the name of the created METS document
-    `--to_version`: specify the version of the specifications to migrate to
-    `--contractid`: the value of the contract ID (mandatory when migrating to
+* ``--output_filename``: specify the name of the created METS document
+* ``--to_version``: specify the version of the specifications to migrate to
+* ``--contractid``: the value of the contract ID (mandatory when migrating to
     version 1.7.0 of the specifications)
-    `--record_status`: set the RECORDSTATUS of the document, the value
-    'dissemination' will create a DIP document
-    `--objid`: specify the OBJID when migrating to a DIP document
-    `--workspace`: the workspace directory
+* ``--record_status``: set the RECORDSTATUS of the document, the value
+* 'dissemination' will create a DIP document
+* ``--objid``: specify the OBJID when migrating to a DIP document
+* ``--workspace``: the workspace directory
 
 
 Usage
