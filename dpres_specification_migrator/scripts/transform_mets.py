@@ -341,41 +341,6 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     return new_mets, root_attribs['OBJID']
 
 
-def remove_attributes(root):
-    """Removes unsupported attributes from METS file."""
-    for key in ATTRIBS_TO_DELETE:
-        for elem in root.xpath('./%s' % key, namespaces=NAMESPACES):
-            for value in ATTRIBS_TO_DELETE[key]:
-                if value in elem.attrib:
-                    del elem.attrib[value]
-
-    return root
-
-
-def set_dip_metshdr(root):
-    """Sets the new mets metsHdr. Changes the CREATEDATE attribute and
-    optionally the RECORDSTATUS attribute. Sets the agent responsible for
-    the creation of the transformed mets file. Removes other attributes
-    for the metsHdr element.
-    """
-    for hdr in root.xpath('./mets:metsHdr', namespaces=NAMESPACES):
-        for docid in hdr.xpath('./mets:metsDocumentID', namespaces=NAMESPACES):
-            hdr.remove(docid)
-        for agent in hdr.xpath('./mets:agent', namespaces=NAMESPACES):
-            hdr.remove(agent)
-        agent = mets.agent('CSC - IT Center for Science Ltd.')
-        hdr.append(agent)
-
-        hdr.set(
-            'CREATEDATE',
-            datetime.datetime.utcnow().replace(
-                microsecond=0).isoformat() + 'Z')
-        hdr.set('RECORDSTATUS', 'dissemination')
-        if 'LASTMODDATE' in hdr.attrib:
-            del hdr.attrib['LASTMODDATE']
-    return root
-
-
 def serialize_mets(root):
     """Serializes the METS XML data to string. Then replaces some
     namespace declarations, since that can't be done in lxml.
@@ -436,6 +401,41 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
     root.set('OBJID', objid)
 
     return root, objid
+
+
+def remove_attributes(root):
+    """Removes unsupported attributes from METS file."""
+    for key in ATTRIBS_TO_DELETE:
+        for elem in root.xpath('./%s' % key, namespaces=NAMESPACES):
+            for value in ATTRIBS_TO_DELETE[key]:
+                if value in elem.attrib:
+                    del elem.attrib[value]
+
+    return root
+
+
+def set_dip_metshdr(root):
+    """Sets the new mets metsHdr. Changes the CREATEDATE attribute and
+    optionally the RECORDSTATUS attribute. Sets the agent responsible for
+    the creation of the transformed mets file. Removes other attributes
+    for the metsHdr element.
+    """
+    for hdr in root.xpath('./mets:metsHdr', namespaces=NAMESPACES):
+        for docid in hdr.xpath('./mets:metsDocumentID', namespaces=NAMESPACES):
+            hdr.remove(docid)
+        for agent in hdr.xpath('./mets:agent', namespaces=NAMESPACES):
+            hdr.remove(agent)
+        agent = mets.agent('CSC - IT Center for Science Ltd.')
+        hdr.append(agent)
+
+        hdr.set(
+            'CREATEDATE',
+            datetime.datetime.utcnow().replace(
+                microsecond=0).isoformat() + 'Z')
+        hdr.set('RECORDSTATUS', 'dissemination')
+        if 'LASTMODDATE' in hdr.attrib:
+            del hdr.attrib['LASTMODDATE']
+    return root
 
 
 if __name__ == '__main__':
