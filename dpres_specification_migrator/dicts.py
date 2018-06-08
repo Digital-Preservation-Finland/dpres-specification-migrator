@@ -62,3 +62,62 @@ VERSIONS = {
         'KDK': False
     }
 }
+
+
+MDTYPEVERSIONS = {'PREMIS:OBJECT': '2.3', 'PREMIS:RIGHTS': '2.3',
+                  'PREMIS:EVENT': '2.3', 'PREMIS:AGENT': '2.3',
+                  'TEXTMD': '3.01', 'DC': '1.1', 'NISOIMG': '2.0',
+                  'AudioMD': '2.0', 'VideoMD': '2.0', 'EAD': '2002',
+                  'MODS': '3.6', 'MARC': 'marcxml=1.2; marc=marc21',
+                  'DDI': '2.5.1', 'EAC-CPF': '2010', 'VRACore': '4.0',
+                  'LIDO': '1.0', 'METSRIGHTS': 'n/a'}
+
+
+ATTRIBS_TO_DELETE = {'.': ['ID', 'TYPE',
+                           ('{http://www.kdk.fi/standards/mets/'
+                            'kdk-extensions}SPECIFICATION')],
+                     'mets:metsHdr': ['ID', 'ADMID'],
+                     'mets:metsHdr/mets:agent': ['ID'],
+                     'mets:dmdSec': ['ADMID', 'STATUS'],
+                     'mets:amdSec': ['ID'],
+                     'mets:amdSec/mets:techMD': ['ADMID', 'STATUS'],
+                     'mets:amdSec/mets:rightsMD': ['ADMID', 'STATUS'],
+                     'mets:amdSec/mets:sourceMD': ['ADMID', 'STATUS'],
+                     'mets:amdSec/mets:digiprovMD': ['ADMID', 'STATUS'],
+                     'mets:dmdSec/mets:mdWrap': [
+                         'ID', 'MIMETYPE', 'SIZE', 'CREATED', 'CHECKSUM',
+                         'CHECKSUMTYPE', 'LABEL'],
+                     'mets:amdSec/*/mets:mdWrap': [
+                         'ID', 'MIMETYPE', 'SIZE', 'CREATED', 'CHECKSUM',
+                         'CHECKSUMTYPE', 'LABEL'],
+                     'mets:amdSec/mets:digiprovMD/mets:mdRef': [
+                         'ID', 'XPTR', 'MIMETYPE', 'SIZE', 'CREATED',
+                         'CHECKSUM', 'CHECKSUMTYPE', 'LABEL',
+                         '{http://www.w3.org/1999/xlink}role',
+                         '{http://www.w3.org/1999/xlink}arcrole',
+                         '{http://www.w3.org/1999/xlink}title',
+                         '{http://www.w3.org/1999/xlink}show',
+                         '{http://www.w3.org/1999/xlink}actuate'],
+                     'mets:fileSec': ['ID'],
+                     'mets:fileSec/mets:fileGrp': ['ID', 'ADMID', 'VERSDATE'],
+                     'mets:fileSec/mets:fileGrp/mets:file': [
+                         'MIMETYPE', 'SIZE', 'CREATED', 'CHECKSUM',
+                         'CHECKSUMTYPE', 'SEQ', 'DMDID', 'BEGIN', 'END',
+                         'BETYPE'],
+                     'mets:fileSec/mets:fileGrp/mets:file/mets:FLocat': [
+                         'ID', '{http://www.w3.org/1999/xlink}role',
+                         '{http://www.w3.org/1999/xlink}arcrole',
+                         '{http://www.w3.org/1999/xlink}title',
+                         '{http://www.w3.org/1999/xlink}show',
+                         '{http://www.w3.org/1999/xlink}actuate'],
+                     'mets:structMap//mets:div': [
+                         '{http://www.w3.org/1999/xlink}label'],
+                     'mets:structMap//mets:div/mets:fptr': [
+                         'ID', 'CONTENTIDS'],
+                     'mets:structMap//mets:div/mets:mptr': [
+                         'ID', 'CONTENTIDS',
+                         '{http://www.w3.org/1999/xlink}role',
+                         '{http://www.w3.org/1999/xlink}arcrole',
+                         '{http://www.w3.org/1999/xlink}title',
+                         '{http://www.w3.org/1999/xlink}show',
+                         '{http://www.w3.org/1999/xlink}actuate']}
