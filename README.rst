@@ -39,6 +39,14 @@ transform_mets
     updating the metadata to a newer version of the specifications and 
     optionally changing the RECORDSTATUS of the document.
 
+
+Usage
+-----
+
+Run the script transform_mets as follows::
+
+    python dissemination/scripts/transform_mets.py [input_file] [options]
+
 The script can take the following options:
 
 * ``--output_filename``: specify the name of the created METS document
@@ -50,13 +58,9 @@ The script can take the following options:
 * ``--objid``: specify the OBJID when migrating to a DIP document
 * ``--workspace``: the workspace directory
 
-
-Usage
------
-
 The script produces a mets.xml file in the parametrized folder 'workspace'
-(unless the '--output_filename' argument is used to specify the name of the
-file).
+unless the '--output_filename' argument is used to specify the name of the
+file.
 
 To migrate a METS document located in the tests/data/mets folder to a newer
 version of the finnish national specifications use the script as follows::
@@ -83,7 +87,7 @@ To transform the METS into a DIP METS use the '--record_status' argument::
 
     python dissemination/scripts/transform_mets.py tests/data/mets/mets_1_4.xml
     --record_status dissemination --workspace ./workspace --contractid
-    <contract ID> --objid <OBJID>
+    <contract ID> --objid <objid>
 
 This will create a DIP METS document from the input file as well as migrating
 it to a newer version if possible.
