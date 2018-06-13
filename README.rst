@@ -1,5 +1,5 @@
 Specification Migration Tools
-==================
+=============================
 
 This tool is intended to be used for migrating an OAIS Information Package
 METS document according to the specifications of the Finnish National Digital
@@ -45,7 +45,8 @@ Usage
 
 Run the script transform_mets as follows::
 
-    python dissemination/scripts/transform_mets.py [input_file] [options]
+    python dpres_specification_migrator/scripts/transform_mets.py [input_file]
+    [options]
 
 The script can take the following options:
 
@@ -65,19 +66,20 @@ file.
 To migrate a METS document located in the tests/data/mets folder to a newer
 version of the finnish national specifications use the script as follows::
 
-    python dissemination/scripts/transform_mets.py tests/data/mets/mets_1_4.xml
-    --workspace ./workspace --contractid <contract id>
+    python dpres_specification_migrator/scripts/transform_mets.py
+    tests/data/mets/mets_1_4.xml --workspace ./workspace
+    --contractid <contract id>
 
 The script will update the METS document so that it conforms to the version
-1.7.0 of the specifications of the Finnsih National Digital Preservation
+1.7.0 of the specifications of the Finnish National Digital Preservation
 Services. The updated file is written into the workspace directory.
 The 'contractid' argument is mandatory when migrating to version '1.7.0'.
 
 Optionally the version of the specifications to migrate the METS document to,
 can be specified by using the '--to_version' argument::
 
-    python dissemination/scripts/transform_mets.py tests/data/mets/mets_1_4.xml
-    --to_version 1.´6 --workspace ./workspace
+    python dpres_specification_migrator/scripts/transform_mets.py
+    tests/data/mets/mets_1_4.xml --to_version 1.´6 --workspace ./workspace
 
 The argument '--to_version' accepts values from a predifined list only. Please
 note that it is not possible to convert a document to an older version of the
@@ -85,9 +87,9 @@ specifications than the document's version itself.
 
 To transform the METS into a DIP METS use the '--record_status' argument::
 
-    python dissemination/scripts/transform_mets.py tests/data/mets/mets_1_4.xml
-    --record_status dissemination --workspace ./workspace --contractid
-    <contract ID> --objid <objid>
+    python dpres_specification_migrator/scripts/transform_mets.py
+    tests/data/mets/mets_1_4.xml --record_status dissemination --workspace
+    ./workspace --contractid <contract ID> --objid <objid>
 
 This will create a DIP METS document from the input file as well as migrating
 it to a newer version if possible.
