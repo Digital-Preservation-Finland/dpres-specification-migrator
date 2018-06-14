@@ -10,11 +10,10 @@ def main():
     setup(
         name='dpres-specification-migrator',
         packages=find_packages(exclude=['tests', 'tests.*']),
-        version='dev',
+        version='0.1',
         entry_points={'console_scripts':
                       [('transform-mets = '
-                        'dpres_specification_migrator.scripts.'
-                        'transform_mets:main')]})
+                        'dpres_specification_migrator.transform_mets:main')]})
 
 
 if __name__ == '__main__':

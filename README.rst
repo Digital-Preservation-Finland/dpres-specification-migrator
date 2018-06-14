@@ -45,7 +45,7 @@ Usage
 
 Run the script transform_mets as follows::
 
-    python dpres_specification_migrator/scripts/transform_mets.py [input_file]
+    python dpres_specification_migrator/transform_mets.py [input_file]
     [options]
 
 The script can take the following options:
@@ -66,7 +66,7 @@ file.
 To migrate a METS document located in the tests/data/mets folder to a newer
 version of the finnish national specifications use the script as follows::
 
-    python dpres_specification_migrator/scripts/transform_mets.py
+    python dpres_specification_migrator/transform_mets.py
     tests/data/mets/mets_1_4.xml --workspace ./workspace
     --contractid <contract id>
 
@@ -78,7 +78,7 @@ The 'contractid' argument is mandatory when migrating to version '1.7.0'.
 Optionally the version of the specifications to migrate the METS document to,
 can be specified by using the '--to_version' argument::
 
-    python dpres_specification_migrator/scripts/transform_mets.py
+    python dpres_specification_migrator/transform_mets.py
     tests/data/mets/mets_1_4.xml --to_version 1.´6 --workspace ./workspace
 
 The argument '--to_version' accepts values from a predifined list only. Please
@@ -87,7 +87,7 @@ specifications than the document's version itself.
 
 To transform the METS into a DIP METS use the '--record_status' argument::
 
-    python dpres_specification_migrator/scripts/transform_mets.py
+    python dpres_specification_migrator/transform_mets.py
     tests/data/mets/mets_1_4.xml --record_status dissemination --workspace
     ./workspace --contractid <contract ID> --objid <objid>
 

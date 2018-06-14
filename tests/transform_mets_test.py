@@ -11,7 +11,7 @@ import mets as m
 import premis as p
 import xml_helpers.utils as h
 
-from dpres_specification_migrator.scripts.transform_mets import main, \
+from dpres_specification_migrator.transform_mets import main, \
         fix_1_4_mets, remove_attributes, parse_arguments, set_dip_metshdr, \
         migrate_mets, serialize_mets, get_fi_ns, move_mix, \
         set_charset_from_textmd, NAMESPACES
