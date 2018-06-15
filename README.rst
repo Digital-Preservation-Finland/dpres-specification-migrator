@@ -3,11 +3,12 @@ Specification Migration Tools
 
 This tool is intended to be used for migrating an OAIS Information Package
 METS document according to the specifications of the Finnish National Digital
-Preservation Services. The tool contains code for modifying and updating
-the information package METS document to a newer version of the national
-specifications. The tool also support creating Dissemination Information
-Packages (DIP) by modifying the METS document's RECORDSTATUS attribute and
-producing a DIP METS according to the national specifications.
+Preservation Services (http://digitalpreservation.fi/specifications). The tool
+contains code for modifying and updating the information package METS document
+to a newer version of the national specifications. The tool also support
+creating Dissemination Information Packages (DIP) by modifying the METS
+document's RECORDSTATUS attribute and producing a DIP METS according to the
+national specifications.
 
 
 Installation
@@ -35,9 +36,9 @@ Scripts
 -------
 
 transform_mets
-    for modifying the METS document by removing unsupported metadata,
-    updating the metadata to a newer version of the specifications and 
-    optionally changing the RECORDSTATUS of the document.
+    for modifying the METS document by updating the metadata to a newer
+    version of the specifications and optionally creating a Dissemination
+    Information Package from the METS document.
 
 
 Usage
@@ -53,10 +54,10 @@ The script can take the following options:
 * ``--output_filename``: specify the name of the created METS document
 * ``--to_version``: specify the version of the specifications to migrate to
 * ``--contractid``: the value of the contract ID (mandatory when migrating to
-  version 1.7.0 of the specifications)
+  version 1.7.0 of the specifications from an older version)
 * ``--record_status``: set the RECORDSTATUS of the document, the value
-  'dissemination' will create a DIP document
-* ``--objid``: specify the OBJID when migrating to a DIP document
+  'dissemination' will create a DIP METS document
+* ``--objid``: specify the OBJID when migrating to a DIP METS document
 * ``--workspace``: the workspace directory
 
 The script produces a mets.xml file in the parametrized folder 'workspace'
@@ -75,7 +76,7 @@ The script will update the METS document so that it conforms to the version
 Services. The updated file is written into the workspace directory.
 The 'contractid' argument is mandatory when migrating to version '1.7.0'.
 
-Optionally the version of the specifications to migrate the METS document to,
+Optionally the version of the specifications to migrate the METS document to
 can be specified by using the '--to_version' argument::
 
     python dpres_specification_migrator/transform_mets.py
@@ -94,9 +95,12 @@ To transform the METS into a DIP METS use the '--record_status' argument::
 This will create a DIP METS document from the input file as well as migrating
 it to a newer version if possible.
 
-When creating a DIP METS it is possible to specify the METS OBJID with the
-'--objid' argument. Note that this argument is ignored when only migrating the
-METS to a newer version without creating a DIP document.
+When creating a DIP METS it is possible to specify the METS OBJID of the DIP
+METS with the '--objid' argument. If the OBJID isn't specified, the script
+will generate a random unique ID for the DIP METS. Note that this argument is
+ignored if the '--record_status' is not 'dissemination' (the OBJID of the METS
+document is not changed when migrating to a newer version of the specifications
+without migrating to a DIP).
 
 
 Copyright    
