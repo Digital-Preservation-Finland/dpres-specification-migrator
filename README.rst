@@ -5,7 +5,7 @@ This tool is intended to be used for migrating an OAIS Information Package
 METS document according to the specifications of the Finnish National Digital
 Preservation Services (http://digitalpreservation.fi/specifications). The tool
 contains code for modifying and updating the information package METS document
-to a newer version of the national specifications. The tool also support
+to a newer version of the national specifications. The tool also supports
 creating Dissemination Information Packages (DIP) by modifying the METS
 document's RECORDSTATUS attribute and producing a DIP METS according to the
 national specifications.
@@ -65,7 +65,7 @@ unless the '--output_filename' argument is used to specify the name of the
 file.
 
 To migrate a METS document located in the tests/data/mets folder to a newer
-version of the finnish national specifications use the script as follows::
+version of the Finnish national specifications use the script as follows::
 
     python dpres_specification_migrator/transform_mets.py
     tests/data/mets/mets_1_4.xml --workspace ./workspace
@@ -80,7 +80,7 @@ Optionally the version of the specifications to migrate the METS document to
 can be specified by using the '--to_version' argument::
 
     python dpres_specification_migrator/transform_mets.py
-    tests/data/mets/mets_1_4.xml --to_version 1.´6 --workspace ./workspace
+    tests/data/mets/mets_1_4.xml --to_version 1.6 --workspace ./workspace
 
 The argument '--to_version' accepts values from a predifined list only. Please
 note that it is not possible to convert a document to an older version of the
