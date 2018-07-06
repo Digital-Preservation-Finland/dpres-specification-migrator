@@ -110,7 +110,8 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
                 del new_attribs[attrib]
         for attrib in old_root:
             assert attrib in new_attribs
-            if attrib not in ['CATALOG', 'SPECIFICATION', 'PROFILE']:
+            if attrib not in ['CATALOG', 'SPECIFICATION', 'PROFILE',
+                              'schemaLocation']:
                 assert old_root[attrib] == new_attribs[attrib]
 
         assert 'MDTYPEVERSION' in root.xpath(
@@ -360,6 +361,10 @@ def test_migrate_mets():
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
                                  'mets-profiles/cultural-heritage'
+    assert dip.get(
+        '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation') == (
+            'http://www.loc.gov/METS/ '
+            'http://digitalpreservation.fi/schemas/mets/mets.xsd')
     assert len(dip) == 3
     assert dip.xpath('//mets:mdRef/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'FiPreservationPlan'
