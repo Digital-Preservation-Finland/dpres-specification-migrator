@@ -264,15 +264,16 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     """Migrates the METS document from the METS data in XML.
 
     1) Collects all attributes from the METS root element
-    1) Sets the correct profile for the METS document
-    2) Sets the correct CATALOG or SPECIFICATION
-    3) Adds CONTRACTID and migrates old KDK specific profile data if
+    2) Sets the correct profile for the METS document
+    3) Sets the correct CATALOG or SPECIFICATION
+    4) Updates the schemaLocation attribute
+    5) Adds CONTRACTID and migrates old KDK specific profile data if
        to_catalog specifies a newer non-KDK profile
-    4) Writes a new mets root element for the METS document
-    5) Appends all child elements from the supplied root element
+    6) Writes a new mets root element for the METS document
+    7) Appends all child elements from the supplied root element
        to the new METS
-    6) Modifies the LASTMODDATE in the metsHdr
-    7) Writes the updated attribute set to the new root
+    8) Modifies the LASTMODDATE in the metsHdr
+    9) Writes the updated attribute set to the new root
 
     :root: the mets root as xml
     :to_catalog: the intended catalog version of the METS document
@@ -295,6 +296,11 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     if '{%s}SPECIFICATION' % fi_ns in root_attribs:
         root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
 
+    root_attribs[
+        '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
+            'http://www.loc.gov/METS/ '
+            'http://digitalpreservation.fi/schemas/mets/mets.xsd')
+
     contractid = ''
     if not VERSIONS[to_catalog]['KDK']:
         if '{%s}CONTRACTID' % fi_ns in root.attrib:
@@ -313,6 +319,7 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                 'mets:mdRef[@OTHERMDTYPE="KDKPreservationPlan"]',
                 namespaces=NAMESPACES):
             elem.set('OTHERMDTYPE', 'FiPreservationPlan')
+
     elif contract:
         print ('Warning: the argument contract %s was ignored. The requested '
                'catalog version %s does not support @CONTRACTID.') % (
