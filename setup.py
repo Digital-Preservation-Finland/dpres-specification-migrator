@@ -3,6 +3,7 @@ Install dpres-specification-migrator
 """
 
 from setuptools import setup, find_packages
+from version import get_version
 
 
 def main():
@@ -10,7 +11,7 @@ def main():
     setup(
         name='dpres-specification-migrator',
         packages=find_packages(exclude=['tests', 'tests.*']),
-        version='0.1',
+        version=get_version(),
         entry_points={'console_scripts':
                       [('transform-mets = '
                         'dpres_specification_migrator.transform_mets:main')]})
