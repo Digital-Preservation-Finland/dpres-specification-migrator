@@ -292,9 +292,16 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                   'mets-profiles/cultural-heritage'
 
     if '{%s}CATALOG' % fi_ns in root_attribs:
-        root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
+        if to_catalog == '1.7':
+            root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.1'
+        else:
+            root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
     if '{%s}SPECIFICATION' % fi_ns in root_attribs:
-        root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
+        if to_catalog in ['1.6', '1.7']:
+            root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.1'
+        else:
+            root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
+
 
     root_attribs[
         '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
@@ -364,7 +371,7 @@ def serialize_mets(root):
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0]
 
-    if version == '1.7.0':
+    if version in ['1.7.0', '1.7.1']:
         mets_str = mets_str.replace(
             'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
             'xmlns:fi="http://digitalpreservation.fi/'
@@ -402,7 +409,10 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
 
     root = set_dip_metshdr(root)
 
-    root.set('{%s}CATALOG' % fi_ns, to_catalog + '.0')
+    if to_catalog == '1.7':
+        root.set('{%s}CATALOG' % fi_ns, to_catalog + '.1')
+    else:
+        root.set('{%s}CATALOG' % fi_ns, to_catalog + '.0')
     if '{%s}SPECIFICATION' % fi_ns in root.attrib:
         del root.attrib['{%s}SPECIFICATION' % fi_ns]
     root.set('OBJID', objid)
