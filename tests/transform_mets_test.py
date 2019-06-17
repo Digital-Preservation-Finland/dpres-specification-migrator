@@ -409,7 +409,7 @@ def test_serialize_mets():
         'OBJID="xxx" fi:CATALOG="1.7.1"/>'
 
     mets_xml = ET.fromstring(mets_input)
-    mets_outcome = serialize_mets(mets_xml)
+    mets_outcome = serialize_mets(mets_xml).encode("utf-8")
 
     assert h.compare_trees(ET.fromstring(intended_result),
                            ET.fromstring(mets_outcome)) is True

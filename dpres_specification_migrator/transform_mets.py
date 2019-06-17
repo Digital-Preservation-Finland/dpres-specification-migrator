@@ -4,18 +4,20 @@ Preservation Services. Also possible to change the RECORDSTATUS of the
 METS document to create a dissemination information package.
 """
 
+from __future__ import print_function
+
+import argparse
+import copy
+import datetime
 import os
 import sys
-import argparse
-import datetime
-import copy
-
 from uuid import uuid4
 
 import mets
 import xml_helpers.utils as xml_helpers
-from dpres_specification_migrator.dicts import RECORD_STATUS_TYPES, \
-    NAMESPACES, VERSIONS, MDTYPEVERSIONS, ATTRIBS_TO_DELETE
+from dpres_specification_migrator.dicts import (ATTRIBS_TO_DELETE,
+                                                MDTYPEVERSIONS, NAMESPACES,
+                                                RECORD_STATUS_TYPES, VERSIONS)
 
 
 def main(arguments=None):
@@ -33,31 +35,40 @@ def main(arguments=None):
             supported_versions.append(key)
 
     if args.to_version not in supported_versions:
-        print >> sys.stderr, ('Error: Unable to migrate METS document '
-                              'to METS catalog version %s. Supported '
-                              'versions are %s.' % (
-                                  args.to_version,
-                                  ', '.join(supported_versions)))
+        print(
+            'Error: Unable to migrate METS document '
+            'to METS catalog version %s. Supported '
+            'versions are %s.' % (
+                args.to_version,
+                ', '.join(supported_versions)
+            ),
+            file=sys.stderr
+        )
         return 117
 
     elif VERSIONS[args.to_version]['order'] < VERSIONS[version]['order']:
-        print >> sys.stderr, ('Error: Unable to migrate METS document to an '
-                              'older catalog version. Current METS catalog '
-                              'version is %s, while version %s was '
-                              'requested.' % (
-                                  version, args.to_version))
+        print(
+            'Error: Unable to migrate METS document to an '
+            'older catalog version. Current METS catalog '
+            'version is %s, while version %s was '
+            'requested.' % (version, args.to_version),
+            file=sys.stderr
+        )
         return 117
 
     elif not VERSIONS[args.to_version]['KDK'] and VERSIONS[version]['KDK'] \
             and not args.contractid:
-        print >> sys.stderr, ('Error: CONTRACTID required when migrating '
-                              'to catalog version %s' % args.to_version)
+        print(
+            'Error: CONTRACTID required when migrating '
+            'to catalog version %s' % args.to_version,
+            file=sys.stderr
+        )
         return 117
 
     if args.objid and args.record_status != 'dissemination':
-        print ('Warning: the argument objid with the value "%s" was ignored. '
-               'METS OBJID was not changed in the migration to a newer '
-               'version of the specifications.' % args.objid)
+        print('Warning: the argument objid with the value "%s" was ignored. '
+              'METS OBJID was not changed in the migration to a newer '
+              'version of the specifications.' % args.objid)
 
     NAMESPACES['textmd'] = 'info:lc/xmlns/textMD-v3'
 
@@ -78,7 +89,7 @@ def main(arguments=None):
     filename = args.filename
     with open(os.path.join(args.workspace, filename), 'w+') as outfile:
         outfile.write(mets_str)
-        print 'Wrote METS file as %s with OBJID: %s' % (outfile.name, objid)
+        print('Wrote METS file as %s with OBJID: %s' % (outfile.name, objid))
 
     return 0
 
@@ -313,10 +324,12 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
         if '{%s}CONTRACTID' % fi_ns in root.attrib:
             contractid = root.get('{%s}CONTRACTID' % fi_ns)
             if contract:
-                print ('Warning: the argument contract with the value "%s" '
-                       'was ignored. The existing @CONTRACTID of the METS '
-                       'file, %s, was not overwritten.') % (contract,
-                                                            contractid)
+                print(
+                    'Warning: the argument contract with the value "%s" '
+                    'was ignored. The existing @CONTRACTID of the METS '
+                    'file, %s, was not overwritten.' % (contract,
+                                                        contractid)
+                )
         else:
             contractid = contract
         root_attribs['{%s}CONTRACTID' % fi_ns] = contractid
@@ -328,9 +341,12 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
             elem.set('OTHERMDTYPE', 'FiPreservationPlan')
 
     elif contract:
-        print ('Warning: the argument contract %s was ignored. The requested '
-               'catalog version %s does not support @CONTRACTID.') % (
-                   contract, to_catalog)
+        print(
+            'Warning: the argument contract %s was ignored. The requested '
+            'catalog version %s does not support @CONTRACTID.' % (
+                contract, to_catalog
+            )
+        )
 
     root.xpath('./mets:metsHdr', namespaces=NAMESPACES)[0].set(
         'LASTMODDATE', datetime.datetime.utcnow().replace(

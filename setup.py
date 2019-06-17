@@ -11,6 +11,7 @@ def main():
     setup(
         name='dpres-specification-migrator',
         packages=find_packages(exclude=['tests', 'tests.*']),
+        include_package_data=True,
         version=get_version(),
         entry_points={'console_scripts':
                       [('transform-mets = '
