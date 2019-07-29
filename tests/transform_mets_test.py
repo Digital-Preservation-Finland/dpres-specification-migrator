@@ -1,9 +1,11 @@
 """Tests for the transform_mets module."""
+from __future__ import unicode_literals
 
 import os
 from uuid import uuid4
 import copy
 import pytest
+import six
 
 import lxml.etree as ET
 
@@ -80,7 +82,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         cat_spec = 'SPECIFICATION'
 
     if contract:
-        contractid = 'urn:uuid:' + str(uuid4())
+        contractid = 'urn:uuid:' + six.text_type(uuid4())
         if catalog:
             returncode = main([metsfile, '--objid', objid, '--to_version',
                                catalog, '--workspace', testpath,
@@ -177,7 +179,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
 
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
 
-    contractid = 'urn:uuid:' + str(uuid4())
+    contractid = 'urn:uuid:' + six.text_type(uuid4())
     if catalog:
         returncode = main([metsfile, '--objid', objid, '--to_version',
                            catalog, '--workspace', testpath,
@@ -409,7 +411,7 @@ def test_serialize_mets():
         'OBJID="xxx" fi:CATALOG="1.7.1"/>'
 
     mets_xml = ET.fromstring(mets_input)
-    mets_outcome = serialize_mets(mets_xml).encode("utf-8")
+    mets_outcome = serialize_mets(mets_xml)
 
     assert h.compare_trees(ET.fromstring(intended_result),
                            ET.fromstring(mets_outcome)) is True

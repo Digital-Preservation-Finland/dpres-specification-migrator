@@ -1,4 +1,5 @@
 """Global variables concerning the METS metadata and migration options."""
+from __future__ import unicode_literals
 
 
 RECORD_STATUS_TYPES = [

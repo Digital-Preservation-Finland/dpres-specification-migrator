@@ -3,18 +3,20 @@ newer version of the specifications for the Finnish National Digital
 Preservation Services. Also possible to change the RECORDSTATUS of the
 METS document to create a dissemination information package.
 """
-
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import argparse
 import copy
 import datetime
+import io
 import os
 import sys
 from uuid import uuid4
 
+import six
+
 import mets
-import xml_helpers.utils as xml_helpers
+import xml_helpers.utils
 from dpres_specification_migrator.dicts import (ATTRIBS_TO_DELETE,
                                                 MDTYPEVERSIONS, NAMESPACES,
                                                 RECORD_STATUS_TYPES, VERSIONS)
@@ -24,7 +26,7 @@ def main(arguments=None):
     """The main method for transform_mets."""
     args = parse_arguments(arguments)
 
-    root = xml_helpers.readfile(args.filepath).getroot()
+    root = xml_helpers.utils.readfile(args.filepath).getroot()
 
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0][:3]
@@ -84,11 +86,11 @@ def main(arguments=None):
             migrated_mets, cur_catalog=version,
             to_catalog=args.to_version, objid=args.objid)
 
-    mets_str = serialize_mets(migrated_mets)
+    mets_b = serialize_mets(migrated_mets)
 
     filename = args.filename
-    with open(os.path.join(args.workspace, filename), 'w+') as outfile:
-        outfile.write(mets_str)
+    with io.open(os.path.join(args.workspace, filename), 'wb+') as outfile:
+        outfile.write(mets_b)
         print('Wrote METS file as %s with OBJID: %s' % (outfile.name, objid))
 
     return 0
@@ -248,7 +250,7 @@ def move_mix(root, premis_mix):
     :returns: the METS data root
     """
 
-    mix_id = '_' + str(uuid4())
+    mix_id = '_' + six.text_type(uuid4())
     techmd_id = premis_mix.xpath('./ancestor::mets:techMD',
                                  namespaces=NAMESPACES)[0].get('ID')
     amdsec = root.xpath('.//mets:amdSec', namespaces=NAMESPACES)[0]
@@ -372,28 +374,28 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
 
 
 def serialize_mets(root):
-    """Serializes the METS XML data to string. Then replaces some
+    """Serializes the METS XML data to byte string. Then replaces some
     namespace declarations, since that can't be done in lxml.
 
-    :returns: METS data as string
+    :returns: METS data as byte string
     """
 
-    mets_str = xml_helpers.serialize(root)
+    mets_b = xml_helpers.utils.encode_utf8(xml_helpers.utils.serialize(root))
 
-    mets_str = mets_str.replace(
-        'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
-        'xmlns:textmd="info:lc/xmlns/textMD-v3"')
+    mets_b = mets_b.replace(
+        b'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
+        b'xmlns:textmd="info:lc/xmlns/textMD-v3"')
 
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0]
 
     if version in ['1.7.0', '1.7.1']:
-        mets_str = mets_str.replace(
-            'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
-            'xmlns:fi="http://digitalpreservation.fi/'
-            'schemas/mets/fi-extensions"')
+        mets_b = mets_b.replace(
+            b'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
+            b'xmlns:fi="http://digitalpreservation.fi/'
+            b'schemas/mets/fi-extensions"')
 
-    return mets_str
+    return mets_b
 
 
 def get_fi_ns(catalog):
@@ -419,7 +421,7 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
     fi_ns = get_fi_ns(cur_catalog)
 
     if not objid:
-        objid = str(uuid4())
+        objid = six.text_type(uuid4())
 
     root = remove_attributes(root)
 
