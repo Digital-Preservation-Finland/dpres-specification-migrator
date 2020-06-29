@@ -67,7 +67,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.1'
+    version = '1.7.2'
 
     old_root = h.readfile(metsfile).getroot().attrib
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -103,7 +103,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.1'
+                version = catalog + '.2'
             else:
                 version = catalog + '.0'
 
@@ -133,7 +133,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         if version == '1.6.0' and cat_spec == 'SPECIFICATION':
             version = '1.6.1'
 
-        if version == '1.7.1':
+        if version == '1.7.2':
             assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}%s' % cat_spec) == version
@@ -174,7 +174,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.1'
+    version = '1.7.2'
     filename = objid + '.xml'
 
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -201,7 +201,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.1'
+                version = catalog + '.2'
             else:
                 version = catalog + '.0'
 
@@ -223,7 +223,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert not root.xpath('./mets:metsHdr/@LASTMODDATE',
                               namespaces=m.NAMESPACES)
 
-        if version == '1.7.1':
+        if version == '1.7.2':
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}CATALOG') == version
             assert root.get('{http://digitalpreservation.fi/schemas/'
@@ -367,7 +367,7 @@ def test_migrate_mets():
     assert objid == 'xxx'
     assert len(dip.attrib) == 6
     assert dip.get('{%s}CONTRACTID' % fi_ns) == 'aaa'
-    assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.1'
+    assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.2'
     assert dip.get('OBJID') == 'xxx'
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
@@ -396,7 +396,7 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" ' \
         'PROFILE="http://digitalpreservation.fi/' \
         'mets-profiles/cultural-heritage" ' \
-        'OBJID="xxx" fi:CATALOG="1.7.1"/>'
+        'OBJID="xxx" fi:CATALOG="1.7.2"/>'
 
     intended_result = '<mets:mets ' \
         'xmlns:mets="http://www.loc.gov/METS/" ' \
@@ -408,7 +408,7 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" ' \
         'PROFILE="http://digitalpreservation.fi/' \
         'mets-profiles/cultural-heritage" '\
-        'OBJID="xxx" fi:CATALOG="1.7.1"/>'
+        'OBJID="xxx" fi:CATALOG="1.7.2"/>'
 
     mets_xml = ET.fromstring(mets_input)
     mets_outcome = serialize_mets(mets_xml)

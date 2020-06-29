@@ -22,6 +22,9 @@ from dpres_specification_migrator.dicts import (ATTRIBS_TO_DELETE,
                                                 RECORD_STATUS_TYPES, VERSIONS)
 
 
+CURRENT_VERSION = "1.7.2"
+
+
 def main(arguments=None):
     """The main method for transform_mets."""
     args = parse_arguments(arguments)
@@ -306,11 +309,13 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
 
     if '{%s}CATALOG' % fi_ns in root_attribs:
         if to_catalog == '1.7':
-            root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.1'
+            root_attribs['{%s}CATALOG' % fi_ns] = CURRENT_VERSION
         else:
             root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
     if '{%s}SPECIFICATION' % fi_ns in root_attribs:
-        if to_catalog in ['1.6', '1.7']:
+        if to_catalog == '1.7':
+            root_attribs['{%s}SPECIFICATION' % fi_ns] = CURRENT_VERSION
+        elif to_catalog == '1.6':
             root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.1'
         else:
             root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
@@ -389,7 +394,7 @@ def serialize_mets(root):
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0]
 
-    if version in ['1.7.0', '1.7.1']:
+    if version in ['1.7.0', '1.7.1', '1.7.2']:
         mets_b = mets_b.replace(
             b'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
             b'xmlns:fi="http://digitalpreservation.fi/'
@@ -428,7 +433,7 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
     root = set_dip_metshdr(root)
 
     if to_catalog == '1.7':
-        root.set('{%s}CATALOG' % fi_ns, to_catalog + '.1')
+        root.set('{%s}CATALOG' % fi_ns, CURRENT_VERSION)
     else:
         root.set('{%s}CATALOG' % fi_ns, to_catalog + '.0')
     if '{%s}SPECIFICATION' % fi_ns in root.attrib:
