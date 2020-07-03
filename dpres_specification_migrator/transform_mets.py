@@ -22,9 +22,6 @@ from dpres_specification_migrator.dicts import (ATTRIBS_TO_DELETE,
                                                 RECORD_STATUS_TYPES, VERSIONS)
 
 
-CURRENT_VERSION = "1.7.2"
-
-
 def main(arguments=None):
     """The main method for transform_mets."""
     args = parse_arguments(arguments)
@@ -308,18 +305,11 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                   'mets-profiles/cultural-heritage'
 
     if '{%s}CATALOG' % fi_ns in root_attribs:
-        if to_catalog == '1.7':
-            root_attribs['{%s}CATALOG' % fi_ns] = CURRENT_VERSION
-        else:
-            root_attribs['{%s}CATALOG' % fi_ns] = to_catalog + '.0'
+        root_attribs['{%s}CATALOG' % fi_ns] = \
+            VERSIONS[to_catalog]['catalog_version']
     if '{%s}SPECIFICATION' % fi_ns in root_attribs:
-        if to_catalog == '1.7':
-            root_attribs['{%s}SPECIFICATION' % fi_ns] = CURRENT_VERSION
-        elif to_catalog == '1.6':
-            root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.1'
-        else:
-            root_attribs['{%s}SPECIFICATION' % fi_ns] = to_catalog + '.0'
-
+        root_attribs['{%s}SPECIFICATION' % fi_ns] = \
+            VERSIONS[to_catalog]['newest_specification']
 
     root_attribs[
         '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
@@ -432,10 +422,7 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
 
     root = set_dip_metshdr(root)
 
-    if to_catalog == '1.7':
-        root.set('{%s}CATALOG' % fi_ns, CURRENT_VERSION)
-    else:
-        root.set('{%s}CATALOG' % fi_ns, to_catalog + '.0')
+    root.set('{%s}CATALOG' % fi_ns, VERSIONS[to_catalog]['catalog_version'])
     if '{%s}SPECIFICATION' % fi_ns in root.attrib:
         del root.attrib['{%s}SPECIFICATION' % fi_ns]
     root.set('OBJID', objid)

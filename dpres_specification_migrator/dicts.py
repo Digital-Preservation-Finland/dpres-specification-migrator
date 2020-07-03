@@ -42,25 +42,33 @@ VERSIONS = {
         'order': 1,
         'fix_old': True,
         'supported': False,
-        'KDK': True
+        'KDK': True,
+        'catalog_version': '1.4.0',
+        'newest_specification': '1.4.0'
     },
     '1.5': {
         'order': 2,
         'fix_old': False,
         'supported': True,
-        'KDK': True
+        'KDK': True,
+        'catalog_version': '1.5.0',
+        'newest_specification': '1.5.0'
     },
     '1.6': {
         'order': 3,
         'fix_old': False,
         'supported': True,
-        'KDK': True
+        'KDK': True,
+        'catalog_version': '1.6.0',
+        'newest_specification': '1.6.1'
     },
     '1.7': {
         'order': 4,
         'fix_old': False,
         'supported': True,
-        'KDK': False
+        'KDK': False,
+        'catalog_version': '1.7.2',
+        'newest_specification': '1.7.2'
     }
 }
 
