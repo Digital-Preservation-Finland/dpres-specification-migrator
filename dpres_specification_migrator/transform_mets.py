@@ -133,11 +133,19 @@ def fix_1_4_mets(root):
     """
     NAMESPACES['textmd'] = 'http://www.kdk.fi/standards/textmd'
 
-    for elem in root.xpath(".//mets:mdWrap", namespaces=NAMESPACES):
+    for elem in root.xpath("./mets:amdSec/*/mets:mdWrap | ./mets:dmdSec/"
+                           "mets:mdWrap", namespaces=NAMESPACES):
         mdtype = elem.get('MDTYPE')
         if mdtype == 'OTHER':
             mdtype = elem.get('OTHERMDTYPE')
         version = MDTYPEVERSIONS[mdtype]
+        # MODS version has to comply with version given in MODS metadata
+        # If missing, use the default value already given.
+        if mdtype == "MODS":
+            mods_version = elem.xpath("./mets:xmlData/mods:mods/@version",
+                                      namespaces=NAMESPACES)
+            if mods_version:
+                version = mods_version[0]
         elem.set('MDTYPEVERSION', version)
 
     root = set_charset_from_textmd(root)
@@ -179,7 +187,7 @@ def fix_1_4_mets(root):
         if mdwrap.get('MDTYPE') == 'METSRIGHTS':
             mdwrap.set('MDTYPE', 'OTHER')
             mdwrap.set('OTHERMDTYPE', 'METSRIGHTS')
-            mdwrap.set('MDTYPEVERSION', 'n/a')
+            mdwrap.set('MDTYPEVERSION', MDTYPEVERSIONS['METSRIGHTS'])
 
     return root
 

@@ -16,7 +16,8 @@ import xml_helpers.utils as h
 from dpres_specification_migrator.transform_mets import main, \
         fix_1_4_mets, remove_attributes, parse_arguments, set_dip_metshdr, \
         migrate_mets, serialize_mets, get_fi_ns, move_mix, \
-        set_charset_from_textmd, NAMESPACES
+        set_charset_from_textmd
+from dpres_specification_migrator.dicts import NAMESPACES
 
 
 TESTAIP_1_4 = 'tests/data/mets/mets_1_4.xml'
@@ -271,6 +272,38 @@ def test_fix_1_4_mets():
     (format_name, _) = p.parse_format(root.xpath(
         './mets:amdSec/*/*/*/*', namespaces=m.NAMESPACES)[1])
     assert format_name == 'text/plain; charset=UTF-8'
+
+
+@pytest.mark.parametrize(
+    ["mods_version", "expected_version"],
+    [
+        # Check that found version is copied
+        ("3.4", "3.4"),
+        # Assume hard coded version if version attribute exists but is empty
+        ("", "3.7"),
+        # Assume hard coded version if version attribute is missing
+        (None, "3.7"),
+    ])
+def test_fix_1_4_mods_version(mods_version, expected_version):
+    """
+    Test that MODS version is migrated properly to METS, according to the
+    value found in MODS metadata.
+    """
+    if mods_version:
+        mods = ET.Element("{%s}mods" % NAMESPACES["mods"],
+                          version=mods_version)
+    else:
+        mods = ET.Element("{%s}mods" % NAMESPACES["mods"])
+    root = ET.parse(TESTAIP_1_4_EXTENSIONS).getroot()
+    mdwrap = root.xpath("./mets:dmdSec/mets:mdWrap",
+                        namespaces=NAMESPACES)[0]
+    mdwrap.attrib["MDTYPE"] = "MODS"
+    xmldata = mdwrap.xpath("./mets:xmlData", namespaces=NAMESPACES)[0]
+    for child in xmldata:
+        xmldata.remove(child)
+    xmldata.append(mods)
+    fix_1_4_mets(root)
+    assert mdwrap.xpath("@MDTYPEVERSION")[0] == expected_version
 
 
 def test_fix_1_4_premis_extensions():

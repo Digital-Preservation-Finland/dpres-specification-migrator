@@ -75,10 +75,10 @@ VERSIONS = {
 
 MDTYPEVERSIONS = {'PREMIS:OBJECT': '2.3', 'PREMIS:RIGHTS': '2.3',
                   'PREMIS:EVENT': '2.3', 'PREMIS:AGENT': '2.3',
-                  'TEXTMD': '3.01', 'DC': '1.1', 'NISOIMG': '2.0',
+                  'TEXTMD': '3.01', 'DC': '2008', 'NISOIMG': '2.0',
                   'AudioMD': '2.0', 'VideoMD': '2.0', 'EAD': '2002',
-                  'MODS': '3.6', 'MARC': 'marcxml=1.2; marc=marc21',
-                  'DDI': '2.5.1', 'EAC-CPF': '2010', 'VRACore': '4.0',
+                  'MODS': '3.7', 'MARC': 'marcxml=1.2; marc=marc21',
+                  'DDI': '2.5.1', 'EAC-CPF': '2010_revised', 'VRACore': '4.0',
                   'LIDO': '1.0', 'METSRIGHTS': 'n/a'}
 
 
