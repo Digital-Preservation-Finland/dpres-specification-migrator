@@ -279,6 +279,8 @@ def test_fix_1_4_mets():
     [
         # Check that found version is copied
         ("3.4", "3.4"),
+        # Do not let spaces affect
+        ("   3.4   ", "3.4"),
         # Assume hard coded version if version attribute exists but is empty
         ("", "3.7"),
         # Assume hard coded version if version attribute is missing
@@ -289,7 +291,7 @@ def test_fix_1_4_mods_version(mods_version, expected_version):
     Test that MODS version is migrated properly to METS, according to the
     value found in MODS metadata.
     """
-    if mods_version:
+    if mods_version is not None:
         mods = ET.Element("{%s}mods" % NAMESPACES["mods"],
                           version=mods_version)
     else:

@@ -144,8 +144,8 @@ def fix_1_4_mets(root):
         if mdtype == "MODS":
             mods_version = elem.xpath("./mets:xmlData/mods:mods/@version",
                                       namespaces=NAMESPACES)
-            if mods_version:
-                version = mods_version[0]
+            if mods_version and mods_version[0].strip():
+                version = mods_version[0].strip()
         elem.set('MDTYPEVERSION', version)
 
     root = set_charset_from_textmd(root)
