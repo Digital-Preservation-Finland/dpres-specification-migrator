@@ -357,6 +357,14 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
         'LASTMODDATE', datetime.datetime.utcnow().replace(
             microsecond=0).isoformat() + 'Z')
 
+    if to_catalog == '1.7':
+        for elem in root.xpath('./mets:dmdSec/mets:mdWrap[./@MDTYPE="MARC"]',
+                               namespaces=NAMESPACES):
+            attr = elem.attrib
+            if 'marc=finmarc' in attr['MDTYPEVERSION']:
+                attr['MDTYPE'] = 'OTHER'
+                attr['OTHERMDTYPE'] = 'MARC'
+
     elems = []
     for elem in root.xpath('./*'):
         elems.append(elem)

@@ -391,7 +391,8 @@ def test_migrate_mets():
            'http://www.loc.gov/standards/mets/mets.xsd" ' \
            'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" ' \
            'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>' \
-           '<mets:dmdSec/>' \
+           '<mets:dmdSec><mets:mdWrap MDTYPE="MARC" ' \
+           'MDTYPEVERSION="marcxml=1.2;marc=finmarc"/></mets:dmdSec>' \
            '<mets:amdSec><mets:digiprovMD><mets:mdRef ' \
            'OTHERMDTYPE="KDKPreservationPlan"/></mets:digiprovMD>' \
            '</mets:amdSec></mets:mets>'
@@ -414,6 +415,10 @@ def test_migrate_mets():
     assert len(dip) == 3
     assert dip.xpath('//mets:mdRef/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'FiPreservationPlan'
+    assert dip.xpath('//mets:mdWrap/@MDTYPE',
+                     namespaces=m.NAMESPACES)[0] == 'OTHER'
+    assert dip.xpath('//mets:mdWrap/@OTHERMDTYPE',
+                     namespaces=m.NAMESPACES)[0] == 'MARC'
 
 
 def test_serialize_mets():
