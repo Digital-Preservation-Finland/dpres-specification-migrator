@@ -395,7 +395,10 @@ def test_migrate_mets():
            'MDTYPEVERSION="marcxml=1.2;marc=finmarc"/></mets:dmdSec>' \
            '<mets:amdSec><mets:digiprovMD><mets:mdRef ' \
            'OTHERMDTYPE="KDKPreservationPlan"/></mets:digiprovMD>' \
-           '</mets:amdSec></mets:mets>'
+           '</mets:amdSec>' \
+           '<mets:fileSec><mets:fileGrp><mets:file ' \
+           'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>' \
+           '</mets:mets>'
     mets_xml = ET.fromstring(mets)
 
     (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6', contract='aaa')
@@ -412,13 +415,15 @@ def test_migrate_mets():
         '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation') == (
             'http://www.loc.gov/METS/ '
             'http://digitalpreservation.fi/schemas/mets/mets.xsd')
-    assert len(dip) == 3
+    assert len(dip) == 4
     assert dip.xpath('//mets:mdRef/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'FiPreservationPlan'
     assert dip.xpath('//mets:mdWrap/@MDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'OTHER'
     assert dip.xpath('//mets:mdWrap/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'MARC'
+    assert dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
+        'fi-preservation-no-file-format-validation'
 
 
 def test_serialize_mets():
