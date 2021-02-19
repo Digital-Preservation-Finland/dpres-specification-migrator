@@ -357,7 +357,7 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
         'LASTMODDATE', datetime.datetime.utcnow().replace(
             microsecond=0).isoformat() + 'Z')
 
-    if to_catalog == '1.7':
+    if not VERSIONS[to_catalog]['KDK']:
         for elem in root.xpath('./mets:dmdSec/mets:mdWrap[./@MDTYPE="MARC"]',
                                namespaces=NAMESPACES):
             attr = elem.attrib
