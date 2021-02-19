@@ -365,12 +365,12 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                 attr['MDTYPE'] = 'OTHER'
                 attr['OTHERMDTYPE'] = 'MARC'
 
-    for elem in root.xpath(
-            './mets:fileSec/mets:fileGrp/mets:file[@USE='
-            '"no-file-format-validation"]', namespaces=NAMESPACES):
-        attr = elem.attrib
-        if attr['USE'] == 'no-file-format-validation':
-            attr['USE'] = 'fi-preservation-no-file-format-validation'
+        for elem in root.xpath(
+                './mets:fileSec/mets:fileGrp/mets:file[@USE='
+                '"no-file-format-validation"]', namespaces=NAMESPACES):
+            attr = elem.attrib
+            if attr['USE'] == 'no-file-format-validation':
+                attr['USE'] = 'fi-preservation-no-file-format-validation'
 
     elems = []
     for elem in root.xpath('./*'):
