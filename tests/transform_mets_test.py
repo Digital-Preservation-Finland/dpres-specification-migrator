@@ -401,7 +401,7 @@ def test_migrate_mets():
            '</mets:mets>'
     mets_xml = ET.fromstring(mets)
 
-    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6', contract='aaa')
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
 
     assert objid == 'xxx'
     assert len(dip.attrib) == 6

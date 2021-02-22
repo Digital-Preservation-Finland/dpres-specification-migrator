@@ -28,8 +28,9 @@ def main(arguments=None):
 
     root = xml_helpers.utils.readfile(args.filepath).getroot()
 
-    version = root.xpath('@*[local-name() = "CATALOG"] | '
-                         '@*[local-name() = "SPECIFICATION"]')[0][:3]
+    full_version = root.xpath('@*[local-name() = "CATALOG"] | '
+                              '@*[local-name() = "SPECIFICATION"]')[0]
+    version = full_version[:3]
 
     supported_versions = []
     for key, value in VERSIONS.items():
@@ -78,8 +79,10 @@ def main(arguments=None):
         root = fix_1_4_mets(root)
 
     (migrated_mets, objid) = migrate_mets(
-        root=root, cur_catalog=version,
+        root=root, full_cur_catalog=full_version,
         to_catalog=args.to_version, contract=args.contractid)
+
+
 
     if args.record_status == 'dissemination':
         migrated_mets, objid = transform_to_dip(
@@ -281,7 +284,7 @@ def move_mix(root, premis_mix):
     return root
 
 
-def migrate_mets(root, to_catalog, cur_catalog, contract=None):
+def migrate_mets(root, to_catalog, full_cur_catalog, contract=None):
     """Migrates the METS document from the METS data in XML.
 
     1) Collects all attributes from the METS root element
@@ -294,16 +297,17 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     7) Appends all child elements from the supplied root element
        to the new METS
     8) Modifies the LASTMODDATE in the metsHdr
-    9) Writes the updated attribute set to the new root
+    9) Updates no-file-format-validation key, if needed
+    10) Writes the updated attribute set to the new root
 
     :root: the mets root as xml
     :to_catalog: the intended catalog version of the METS document
-    :cur_catalog: the current catalog version of the METS document
+    :full_cur_catalog: the current full catalog version of the METS document
     :contract: the CONTRACTID of the METS document
 
     :returns: a METS root as xml
     """
-    fi_ns = get_fi_ns(cur_catalog)
+    fi_ns = get_fi_ns(full_cur_catalog[:3])
 
     root_attribs = root.attrib
 
@@ -365,6 +369,8 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
                 attr['MDTYPE'] = 'OTHER'
                 attr['OTHERMDTYPE'] = 'MARC'
 
+    if VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in [
+            '1.7.0', '1.7.1', '1.7.2'] and not VERSIONS[to_catalog]['KDK']:
         for elem in root.xpath(
                 './mets:fileSec/mets:fileGrp/mets:file[@USE='
                 '"no-file-format-validation"]', namespaces=NAMESPACES):
@@ -376,7 +382,7 @@ def migrate_mets(root, to_catalog, cur_catalog, contract=None):
     for elem in root.xpath('./*'):
         elems.append(elem)
 
-    if not VERSIONS[cur_catalog]['KDK']:
+    if not VERSIONS[full_cur_catalog[:3]]['KDK']:
         NAMESPACES['fi'] = ('http://digitalpreservation.fi/schemas'
                             '/mets/fi-extensions')
     else:
