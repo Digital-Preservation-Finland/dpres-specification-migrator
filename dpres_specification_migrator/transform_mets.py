@@ -369,8 +369,8 @@ def migrate_mets(root, to_catalog, full_cur_catalog, contract=None):
                 attr['MDTYPE'] = 'OTHER'
                 attr['OTHERMDTYPE'] = 'MARC'
 
-    if VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in [
-            '1.7.0', '1.7.1', '1.7.2'] and not VERSIONS[to_catalog]['KDK']:
+    if (VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in [
+            '1.7.0', '1.7.1', '1.7.2']) and not VERSIONS[to_catalog]['KDK']:
         for elem in root.xpath(
                 './mets:fileSec/mets:fileGrp/mets:file[@USE='
                 '"no-file-format-validation"]', namespaces=NAMESPACES):
