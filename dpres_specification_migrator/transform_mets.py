@@ -369,6 +369,10 @@ def migrate_mets(root, to_catalog, full_cur_catalog, contract=None):
                 attr['MDTYPE'] = 'OTHER'
                 attr['OTHERMDTYPE'] = 'MARC'
 
+    # The fi-preservation- prefix is given if target specification is at least
+    # 1.7.3, and if source specification is at most 1.7.2. If the old term is
+    # used in METS with specification 1.7.3 or newer, then it's there for
+    # other purposes not related to DPS.
     if (VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in [
             '1.7.0', '1.7.1', '1.7.2']) and not VERSIONS[to_catalog]['KDK']:
         for elem in root.xpath(
