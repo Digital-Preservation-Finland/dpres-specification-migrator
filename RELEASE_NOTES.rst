@@ -1,6 +1,12 @@
 Release notes
 =============
 
+Version 0.9
+-----------
+
+Updated migrator to meet specifications 1.7.3, including FINMARC handling and
+changed term related to marking files to bit-level preservation.
+
 Version 0.8
 -----------
 
