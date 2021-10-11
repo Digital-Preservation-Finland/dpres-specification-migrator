@@ -13,6 +13,17 @@ def main():
         packages=find_packages(exclude=['tests', 'tests.*']),
         include_package_data=True,
         version=get_version(),
+        install_requires=[
+            "lxml",
+            "dateutils",
+            "six",
+            'xml_helpers@git+https://gitlab.ci.csc.fi/dpres/'
+            'xml-helpers.git@develop#egg=xml_helpers',
+            'mets@git+https://gitlab.ci.csc.fi/dpres/mets.git'
+            '@develop#egg=mets',
+            'premis@git+https://gitlab.ci.csc.fi/dpres/premis.git'
+            '@develop#egg=premis'
+        ],
         entry_points={'console_scripts':
                       [('transform-mets = '
                         'dpres_specification_migrator.transform_mets:main')]})
