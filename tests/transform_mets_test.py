@@ -423,7 +423,62 @@ def test_migrate_mets():
     assert dip.xpath('//mets:mdWrap/@OTHERMDTYPE',
                      namespaces=m.NAMESPACES)[0] == 'MARC'
     assert dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
-        'fi-preservation-no-file-format-validation'
+        'fi-dpres-no-file-format-validation'
+
+
+def test_use_prefix():
+    """Tests that the migration changes the prefix in the USE attribute
+    correctly to fi-dpres-no-file-format-validation. In the test cases (1)-(3)
+    the change needs to be done, in case (4) not.
+    (1) If catalog 1.6.0 and USE=no-file-format-validation
+    (2) If catalog 1.6.0 and USE=fi-preservation-file-format-validation
+    (3) If catalog 1.7.3 and USE=fi-preservation-file-format-validation
+    (4) If catalog 1.7.3 and USE=no-file-format-validation
+    """
+    fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
+    mets = '<mets:mets ' \
+           'xmlns:mets="http://www.loc.gov/METS/" ' \
+           'xmlns:xlink="http://www.w3.org/1999/xlink" ' \
+           'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' \
+           'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" ' \
+           'xsi:schemaLocation="http://www.loc.gov/METS/ ' \
+           'http://www.loc.gov/standards/mets/mets.xsd" ' \
+           'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" ' \
+           'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>' \
+           '<mets:fileSec><mets:fileGrp><mets:file ' \
+           'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>' \
+           '</mets:mets>'
+    # (1) For older specifications migrate value without prefix
+    mets_xml = ET.fromstring(mets)
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+    assert dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
+        'fi-dpres-no-file-format-validation'
+
+    # (2) Use old prefix fi-preservation-
+    mets_xml = ET.fromstring(mets)
+    elem = mets_xml.xpath('//mets:file', namespaces=m.NAMESPACES)[0]
+    elem.attrib['USE'] = 'fi-preservation-no-file-format-validation'
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+    assert dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
+        'fi-dpres-no-file-format-validation'
+
+    # (3) Migrate first to 1.7.3 and use old prefix fi-preservation
+    mets_xml = ET.fromstring(mets)
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+    elem = dip.xpath('//mets:file', namespaces=m.NAMESPACES)[0]
+    elem.attrib['USE'] = 'fi-preservation-no-file-format-validation'
+    (new_dip, objid) = migrate_mets(dip, '1.7', '1.7.3', contract='aaa')
+    assert new_dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
+        'fi-dpres-no-file-format-validation'
+
+    # (4) Migrate first to 1.7.3 and use value not known by DPS
+    mets_xml = ET.fromstring(mets)
+    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+    elem = dip.xpath('//mets:file', namespaces=m.NAMESPACES)[0]
+    elem.attrib['USE'] = 'no-file-format-validation'
+    (new_dip, objid) = migrate_mets(dip, '1.7', '1.7.3', contract='aaa')
+    assert new_dip.xpath('//mets:file/@USE', namespaces=m.NAMESPACES)[0] == \
+        'no-file-format-validation'
 
 
 def test_serialize_mets():
