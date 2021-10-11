@@ -15,7 +15,6 @@ def main():
         version=get_version(),
         install_requires=[
             "lxml",
-            "dateutils",
             "six"
         ],
         entry_points={'console_scripts':
