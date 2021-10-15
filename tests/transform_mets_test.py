@@ -382,23 +382,25 @@ def test_migrate_mets():
     in the new XML data.
     """
     fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
-    mets = '<mets:mets ' \
-           'xmlns:mets="http://www.loc.gov/METS/" ' \
-           'xmlns:xlink="http://www.w3.org/1999/xlink" ' \
-           'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' \
-           'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" ' \
-           'xsi:schemaLocation="http://www.loc.gov/METS/ ' \
-           'http://www.loc.gov/standards/mets/mets.xsd" ' \
-           'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" ' \
-           'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>' \
-           '<mets:dmdSec><mets:mdWrap MDTYPE="MARC" ' \
-           'MDTYPEVERSION="marcxml=1.2;marc=finmarc"/></mets:dmdSec>' \
-           '<mets:amdSec><mets:digiprovMD><mets:mdRef ' \
-           'OTHERMDTYPE="KDKPreservationPlan"/></mets:digiprovMD>' \
-           '</mets:amdSec>' \
-           '<mets:fileSec><mets:fileGrp><mets:file ' \
-           'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>' \
-           '</mets:mets>'
+    mets = (
+        '<mets:mets '
+        'xmlns:mets="http://www.loc.gov/METS/" '
+        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" '
+        'xsi:schemaLocation="http://www.loc.gov/METS/ '
+        'http://www.loc.gov/standards/mets/mets.xsd" '
+        'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" '
+        'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>'
+        '<mets:dmdSec><mets:mdWrap MDTYPE="MARC" '
+        'MDTYPEVERSION="marcxml=1.2;marc=finmarc"/></mets:dmdSec>'
+        '<mets:amdSec><mets:digiprovMD><mets:mdRef '
+        'OTHERMDTYPE="KDKPreservationPlan"/></mets:digiprovMD>'
+        '</mets:amdSec>'
+        '<mets:fileSec><mets:fileGrp><mets:file '
+        'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>'
+        '</mets:mets>'
+    )
     mets_xml = ET.fromstring(mets)
 
     (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
@@ -452,18 +454,20 @@ def test_use_prefix(orig_version, target_version, orig_use, expected):
     :orig_use: Original USE attribute value
     :expected: Expected USE attribute value
     """
-    mets = '<mets:mets ' \
-           'xmlns:mets="http://www.loc.gov/METS/" ' \
-           'xmlns:xlink="http://www.w3.org/1999/xlink" ' \
-           'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' \
-           'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" ' \
-           'xsi:schemaLocation="http://www.loc.gov/METS/ ' \
-           'http://www.loc.gov/standards/mets/mets.xsd" ' \
-           'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" ' \
-           'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>' \
-           '<mets:fileSec><mets:fileGrp><mets:file ' \
-           'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>' \
-           '</mets:mets>'
+    mets = (
+        '<mets:mets '
+        'xmlns:mets="http://www.loc.gov/METS/" '
+        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" '
+        'xsi:schemaLocation="http://www.loc.gov/METS/ '
+        'http://www.loc.gov/standards/mets/mets.xsd" '
+        'PROFILE="http://www.kdk.fi/kdk-mets-profile" OBJID="xxx" '
+        'fi:CATALOG="1.6.0" LABEL="yyy"><mets:metsHdr></mets:metsHdr>'
+        '<mets:fileSec><mets:fileGrp><mets:file '
+        'USE="no-file-format-validation"/></mets:fileGrp></mets:fileSec>'
+        '</mets:mets>'
+    )
     mets_xml = ET.fromstring(mets)
     # Migrate to newer version before migration, if 1.7.3 original needed
     if orig_version == "1.7.3":
@@ -482,29 +486,33 @@ def test_serialize_mets():
     function and asserting that it's output is identical to the
     intended result.
     """
-    mets_input = '<mets:mets ' \
-        'xmlns:mets="http://www.loc.gov/METS/" ' \
-        'xmlns:xlink="http://www.w3.org/1999/xlink" ' \
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' \
-        'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" ' \
-        'xmlns:textmd="http://www.kdk.fi/standards/textmd" ' \
-        'xsi:schemaLocation="http://www.loc.gov/METS/ ' \
-        'http://www.loc.gov/standards/mets/mets.xsd" ' \
-        'PROFILE="http://digitalpreservation.fi/' \
-        'mets-profiles/cultural-heritage" ' \
+    mets_input = (
+        '<mets:mets '
+        'xmlns:mets="http://www.loc.gov/METS/" '
+        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions" '
+        'xmlns:textmd="http://www.kdk.fi/standards/textmd" '
+        'xsi:schemaLocation="http://www.loc.gov/METS/ '
+        'http://www.loc.gov/standards/mets/mets.xsd" '
+        'PROFILE="http://digitalpreservation.fi/'
+        'mets-profiles/cultural-heritage" '
         'OBJID="xxx" fi:CATALOG="1.7.3"/>'
+    )
 
-    intended_result = '<mets:mets ' \
-        'xmlns:mets="http://www.loc.gov/METS/" ' \
-        'xmlns:xlink="http://www.w3.org/1999/xlink" ' \
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' \
-        'xmlns:fi="http://digitalpreservation.fi/schemas/mets/fi-extensions"' \
-        ' xmlns:textmd="info:lc/xmlns/textMD-v3" ' \
-        'xsi:schemaLocation="http://www.loc.gov/METS/ '\
-        'http://www.loc.gov/standards/mets/mets.xsd" ' \
-        'PROFILE="http://digitalpreservation.fi/' \
-        'mets-profiles/cultural-heritage" '\
+    intended_result = (
+        '<mets:mets '
+        'xmlns:mets="http://www.loc.gov/METS/" '
+        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xmlns:fi="http://digitalpreservation.fi/schemas/mets/fi-extensions"'
+        ' xmlns:textmd="info:lc/xmlns/textMD-v3" '
+        'xsi:schemaLocation="http://www.loc.gov/METS/ '
+        'http://www.loc.gov/standards/mets/mets.xsd" '
+        'PROFILE="http://digitalpreservation.fi/'
+        'mets-profiles/cultural-heritage" '
         'OBJID="xxx" fi:CATALOG="1.7.3"/>'
+    )
 
     mets_xml = ET.fromstring(mets_input)
     mets_outcome = serialize_mets(mets_xml)
