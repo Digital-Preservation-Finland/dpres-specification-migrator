@@ -15,17 +15,18 @@ Release:        %{file_release_number}%{file_release_tag}.%{file_build_number}.g
 Summary:        Tools for migrating information packages to newer versions
 Group:          Applications/Archiving
 License:        LGPLv3+
-URL:            http://www.csc.fi
+URL:            https://digitalpreservation.fi
 Source0:        %{file_prefix}-v%{file_version}%{?file_release_tag}-%{file_build_number}-g%{file_commit_ref}.%{file_ext}
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-Requires:       python python-setuptools python-lxml python-six
+Requires:       python python-lxml python-six
 Requires:       mets premis xml-helpers
+BuildRequires:  python-setuptools
 
 %description
-Tools for migrating information packages (SIPs and DIPs) to newer versions of the
-specifications for the Finnish National Digital Preservation Services.
+Tools for migrating information packages (SIPs and DIPs) to newer versions of
+the specifications for the Finnish National Digital Preservation Services.
 
 %prep
 %setup -n %{file_prefix}-v%{file_version}%{?file_release_tag}-%{file_build_number}-g%{file_commit_ref}
@@ -34,7 +35,7 @@ specifications for the Finnish National Digital Preservation Services.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install PREFIX="%{_prefix}" ROOT="%{buildroot}"
+make install PREFIX="%{_prefix}" ROOT="%{buildroot}" PYTHON=python2
 
 %clean
 rm -rf $RPM_BUILD_ROOT

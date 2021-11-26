@@ -1,19 +1,26 @@
-ROOT=/
-PREFIX=/usr
+ROOT = /
+PREFIX = /usr
+
+PYTHON ?= python3
 
 install:
 	# Cleanup temporary files
 	rm -f INSTALLED_FILES
 
 	# Use Python setuptools
-	python setup.py build ; python ./setup.py install -O1 --prefix="${PREFIX}" --root="${ROOT}" --record=INSTALLED_FILES
-	cat INSTALLED_FILES | sed 's/^/\//g' >> INSTALLED_FILES
+	${PYTHON} setup.py build ; \
+	    ${PYTHON} ./setup.py install \
+	    -O1 --prefix="${PREFIX}" --root="${ROOT}" --record=INSTALLED_FILES
 
 test:
-	py.test -svvvv --junitprefix=dpres-specification-migrator --junitxml=junit.xml tests
+	${PYTHON} -m pytest -svvvv \
+	    --junitprefix=dpres-specification-migrator --junitxml=junit.xml \
+	    tests
 
 coverage:
-	py.test tests --cov=dpres-specification-migrator --cov-report=html
+	${PYTHON} -m pytest tests \
+	    --cov=dpres-specification-migrator --cov-report=html
+
 	coverage report -m
 	coverage html
 	coverage xml
