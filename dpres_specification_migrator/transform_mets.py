@@ -49,7 +49,7 @@ def main(arguments=None):
         )
         return 117
 
-    elif VERSIONS[args.to_version]['order'] < VERSIONS[version]['order']:
+    if VERSIONS[args.to_version]['order'] < VERSIONS[version]['order']:
         print(
             'Error: Unable to migrate METS document to an '
             'older catalog version. Current METS catalog '
@@ -59,7 +59,7 @@ def main(arguments=None):
         )
         return 117
 
-    elif not VERSIONS[args.to_version]['KDK'] and VERSIONS[version]['KDK'] \
+    if not VERSIONS[args.to_version]['KDK'] and VERSIONS[version]['KDK'] \
             and not args.contractid:
         print(
             'Error: CONTRACTID required when migrating '
@@ -81,8 +81,6 @@ def main(arguments=None):
     (migrated_mets, objid) = migrate_mets(
         root=root, full_cur_catalog=full_version,
         to_catalog=args.to_version, contract=args.contractid)
-
-
 
     if args.record_status == 'dissemination':
         migrated_mets, objid = transform_to_dip(
