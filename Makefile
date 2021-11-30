@@ -12,19 +12,6 @@ install:
 	    ${PYTHON} ./setup.py install \
 	    -O1 --prefix="${PREFIX}" --root="${ROOT}" --record=INSTALLED_FILES
 
-test:
-	${PYTHON} -m pytest -svvvv \
-	    --junitprefix=dpres-specification-migrator --junitxml=junit.xml \
-	    tests
-
-coverage:
-	${PYTHON} -m pytest tests \
-	    --cov=dpres-specification-migrator --cov-report=html
-
-	coverage report -m
-	coverage html
-	coverage xml
-
 clean: clean-rpm
 	find . -iname '*.pyc' -type f -delete
 	find . -iname '__pycache__' -exec rm -rf '{}' \; | true
