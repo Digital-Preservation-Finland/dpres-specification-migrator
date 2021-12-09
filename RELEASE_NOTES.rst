@@ -1,6 +1,12 @@
 Release notes
 =============
 
+Version 0.10-0.11
+-----------------
+
+Python3 migration.
+Terminology prefix change to fi-dpres.
+
 Version 0.9
 -----------
 
