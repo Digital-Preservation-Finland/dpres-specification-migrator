@@ -67,8 +67,8 @@ VERSIONS = {
         'fix_old': False,
         'supported': True,
         'KDK': False,
-        'catalog_version': '1.7.3',
-        'newest_specification': '1.7.3'
+        'catalog_version': '1.7.4',
+        'newest_specification': '1.7.4'
     }
 }
 

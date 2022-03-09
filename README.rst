@@ -54,7 +54,7 @@ The script can take the following options:
 * ``--output_filename``: specify the name of the created METS document
 * ``--to_version``: specify the version of the specifications to migrate to
 * ``--contractid``: the value of the contract ID (mandatory when migrating to
-  version 1.7.3 of the specifications from an older version)
+  version 1.7.4 of the specifications from an older version)
 * ``--record_status``: set the RECORDSTATUS of the document, the value
   'dissemination' will create a DIP METS document
 * ``--objid``: specify the OBJID when migrating to a DIP METS document
@@ -72,9 +72,9 @@ version of the Finnish national specifications use the script as follows::
     --contractid <contract id>
 
 The script will update the METS document so that it conforms to the version
-1.7.3 of the specifications of the Finnish National Digital Preservation
+1.7.4 of the specifications of the Finnish National Digital Preservation
 Services. The updated file is written into the workspace directory.
-The 'contractid' argument is mandatory when migrating to version '1.7.3'.
+The 'contractid' argument is mandatory when migrating to version '1.7.4'.
 
 Optionally the version of the specifications to migrate the METS document to
 can be specified by using the '--to_version' argument::
