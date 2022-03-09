@@ -104,7 +104,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.3'
+                version = catalog + '.4'
             else:
                 version = catalog + '.0'
 
@@ -202,7 +202,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.3'
+                version = catalog + '.4'
             else:
                 version = catalog + '.0'
 
