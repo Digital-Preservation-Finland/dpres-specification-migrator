@@ -1,6 +1,11 @@
 Release notes
 =============
 
+Version 0.12
+------------
+
+Updated migrator to meet specifications 1.7.4.
+
 Version 0.10-0.11
 -----------------
 
