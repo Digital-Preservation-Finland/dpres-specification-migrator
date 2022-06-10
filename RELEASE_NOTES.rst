@@ -5,6 +5,7 @@ Version 0.13
 ------------
 
 Add installation guide for Python 3.6 in README.rst.
+Update requirements in setup file.
 
 Version 0.12
 ------------
