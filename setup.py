@@ -15,7 +15,13 @@ def main():
         version=get_version(),
         install_requires=[
             "lxml",
-            "six"
+            "six",
+            "xml_helpers@git+https://gitlab.ci.csc.fi/dpres/xml-helpers.git"
+            "@develop#egg=xml_helpers",
+            "mets@git+https://gitlab.ci.csc.fi/dpres/mets.git"
+            "@develop#egg=mets",
+            "premis@git+https://gitlab.ci.csc.fi/dpres/premis.git"
+            "@develop#egg=premis"
         ],
         entry_points={'console_scripts':
                       [('transform-mets = '
