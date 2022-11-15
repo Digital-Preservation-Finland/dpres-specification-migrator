@@ -73,11 +73,6 @@ def main(arguments=None):
               'METS OBJID was not changed in the migration to a newer '
               'version of the specifications.' % args.objid)
 
-    NAMESPACES['textmd'] = 'info:lc/xmlns/textMD-v3'
-
-    if VERSIONS[version]['fix_old']:
-        root = fix_1_4_mets(root)
-
     (migrated_mets, objid) = migrate_mets(
         root=root, full_cur_catalog=full_version,
         to_catalog=args.to_version, contract=args.contractid)
@@ -305,6 +300,9 @@ def migrate_mets(root, to_catalog, full_cur_catalog, contract=None):
 
     :returns: a METS root as xml
     """
+    if VERSIONS[full_cur_catalog[:3]]['fix_old']:
+        root = fix_1_4_mets(root)
+
     fi_ns = get_fi_ns(full_cur_catalog[:3])
 
     root_attribs = root.attrib
