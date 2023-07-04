@@ -36,7 +36,7 @@ Summary: %{summary}
 Requires: %{py3_dist xml-helpers}
 Requires: %{py3_dist mets}
 Requires: %{py3_dist premis}
-%description -n python3-dpres-specification-migrator%_description
+%description -n python3-dpres-specification-migrator %_description
 
 %prep
 %autosetup -n %{file_prefix}-v%{file_version}%{?file_release_tag}-%{file_build_number}-g%{file_commit_ref}
