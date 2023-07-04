@@ -1,6 +1,7 @@
 ---
 
 variables:
+  CI_EL9: "yes"
   CI_PYTHON_2_VENV: "yes"
 
 include:

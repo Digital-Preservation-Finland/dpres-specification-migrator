@@ -27,3 +27,4 @@ junit*.xml
 .pytest_cache/
 venv/
 .tox/
+rpmbuild
