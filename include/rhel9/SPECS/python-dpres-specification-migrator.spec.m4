@@ -48,10 +48,12 @@ Requires: %{py3_dist premis}
 %pyproject_install
 %pyproject_save_files dpres_specification_migrator
 
+cp -a %{buildroot}%{_bindir}/transform-mets %{buildroot}%{_bindir}/transform-mets-3
+
 %files -n python3-dpres-specification-migrator -f %{pyproject_files}
 %license LICENSE
 %doc README.rst
-%{_bindir}/transform-mets
+%{_bindir}/transform-mets*
 
 # TODO: For now changelog must be last, because it is generated automatically
 # from git log command. Appending should be fixed to happen only after %changelog macro
