@@ -5,7 +5,6 @@ import os
 from uuid import uuid4
 import copy
 import pytest
-import six
 
 import lxml.etree as ET
 
@@ -83,7 +82,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         cat_spec = 'SPECIFICATION'
 
     if contract:
-        contractid = 'urn:uuid:' + six.text_type(uuid4())
+        contractid = 'urn:uuid:' + str(uuid4())
         if catalog:
             returncode = main([metsfile, '--objid', objid, '--to_version',
                                catalog, '--workspace', testpath,
@@ -180,7 +179,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
 
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
 
-    contractid = 'urn:uuid:' + six.text_type(uuid4())
+    contractid = 'urn:uuid:' + str(uuid4())
     if catalog:
         returncode = main([metsfile, '--objid', objid, '--to_version',
                            catalog, '--workspace', testpath,

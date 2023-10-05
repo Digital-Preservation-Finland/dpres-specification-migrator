@@ -13,8 +13,6 @@ import os
 import sys
 from uuid import uuid4
 
-import six
-
 import mets
 import xml_helpers.utils
 from dpres_specification_migrator.dicts import (ATTRIBS_TO_DELETE,
@@ -254,7 +252,7 @@ def move_mix(root, premis_mix):
     :returns: the METS data root
     """
 
-    mix_id = '_' + six.text_type(uuid4())
+    mix_id = '_' + str(uuid4())
     techmd_id = premis_mix.xpath('./ancestor::mets:techMD',
                                  namespaces=NAMESPACES)[0].get('ID')
     amdsec = root.xpath('.//mets:amdSec', namespaces=NAMESPACES)[0]
@@ -449,7 +447,7 @@ def transform_to_dip(root, cur_catalog, to_catalog, objid=None):
     fi_ns = get_fi_ns(cur_catalog)
 
     if not objid:
-        objid = six.text_type(uuid4())
+        objid = str(uuid4())
 
     root = remove_attributes(root)
 

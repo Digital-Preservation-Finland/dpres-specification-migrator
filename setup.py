@@ -14,8 +14,7 @@ def main():
         include_package_data=True,
         version=get_version(),
         install_requires=[
-            "lxml",
-            "six"
+            "lxml"
         ],
         entry_points={'console_scripts':
                       [('transform-mets = '

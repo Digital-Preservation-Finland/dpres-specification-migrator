@@ -2,7 +2,6 @@ pytest
 coverage
 pytest-cov
 lxml
-six
 git+https://gitlab.ci.csc.fi/dpres/mets.git@develop#egg=mets
 git+https://gitlab.ci.csc.fi/dpres/premis.git@develop#egg=premis
 git+https://gitlab.ci.csc.fi/dpres/xml-helpers.git@develop#egg=xml_helpers
