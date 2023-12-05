@@ -1,5 +1,4 @@
 """Tests for the transform_mets module."""
-from __future__ import unicode_literals
 
 import os
 from uuid import uuid4

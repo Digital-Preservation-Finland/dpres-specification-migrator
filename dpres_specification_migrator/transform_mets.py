@@ -3,7 +3,6 @@ newer version of the specifications for the Finnish National Digital
 Preservation Services. Also possible to change the RECORDSTATUS of the
 METS document to create a dissemination information package.
 """
-from __future__ import print_function, unicode_literals
 
 import argparse
 import copy
@@ -83,9 +82,9 @@ def main(arguments=None):
     mets_b = serialize_mets(migrated_mets)
 
     filename = args.filename
-    with io.open(os.path.join(args.workspace, filename), 'wb+') as outfile:
+    with open(os.path.join(args.workspace, filename), 'wb+') as outfile:
         outfile.write(mets_b)
-        print('Wrote METS file as %s with OBJID: %s' % (outfile.name, objid))
+        print('Wrote METS file as {} with OBJID: {}'.format(outfile.name, objid))
 
     return 0
 
