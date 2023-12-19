@@ -7,7 +7,6 @@ METS document to create a dissemination information package.
 import argparse
 import copy
 import datetime
-import io
 import os
 import sys
 from uuid import uuid4
@@ -84,7 +83,8 @@ def main(arguments=None):
     filename = args.filename
     with open(os.path.join(args.workspace, filename), 'wb+') as outfile:
         outfile.write(mets_b)
-        print('Wrote METS file as {} with OBJID: {}'.format(outfile.name, objid))
+        print('Wrote METS file as {} with OBJID: {}'.format(outfile.name,
+                                                            objid))
 
     return 0
 
