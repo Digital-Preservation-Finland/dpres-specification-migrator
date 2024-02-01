@@ -10,34 +10,28 @@ creating Dissemination Information Packages (DIP) by modifying the METS
 document's RECORDSTATUS attribute and producing a DIP METS according to the
 national specifications.
 
-
-Installation
+Requirements
 ------------
 
-Installation and usage requires Python 3.6 or newer.
-The software is tested with Python 3.6 on Centos 7.x release.
+Installation and usage requires Python 3.9 or newer.
+The software is tested with Python 3.9 on AlmaLinux 9 release.
 
-Create a virtual environment::
-    
-    python3 -m venv venv
+Installation using RPM packages (preferred)
+-------------------------------------------
 
-Run the following to activate the virtual environment::
+Installation on Linux distributions is done by using the RPM Package Manager.
+See how to `configure the PAS-jakelu RPM repositories`_ to setup necessary software sources.
 
-    source venv/bin/activate
+.. _configure the PAS-jakelu RPM repositories: https://www.digitalpreservation.fi/user_guide/installation_of_tools 
 
-Install the required software with commands::
+After the repository has been added, the package can be installed by running the following command::
 
-    pip install --upgrade pip==20.2.4 setuptools
-    pip install -r requirements_github.txt
-    pip install .
-
-To deactivate the virtual environment, run ``deactivate``. To reactivate it, run the ``source`` command above.
-
+    sudo dnf install python3-dpres-specification-migrator
 
 Scripts
 -------
 
-transform_mets
+transform-mets
     for modifying the METS document by updating the metadata to a newer
     version of the specifications and optionally creating a Dissemination
     Information Package from the METS document.
@@ -46,10 +40,9 @@ transform_mets
 Usage
 -----
 
-Run the script transform_mets as follows::
+Run the script ``transform-mets`` as follows::
 
-    python dpres_specification_migrator/transform_mets.py [input_file]
-    [options]
+    transform-mets [input_file] [options]
 
 The script can take the following options:
 
@@ -69,9 +62,7 @@ file.
 To migrate a METS document located in the tests/data/mets folder to a newer
 version of the Finnish national specifications use the script as follows::
 
-    python dpres_specification_migrator/transform_mets.py
-    tests/data/mets/mets_1_4.xml --workspace ./workspace
-    --contractid <contract id>
+    transform-mets tests/data/mets/mets_1_4.xml --workspace ./workspace --contractid <contract id>
 
 The script will update the METS document so that it conforms to the version
 1.7.6 of the specifications of the Finnish National Digital Preservation
@@ -81,8 +72,7 @@ The 'contractid' argument is mandatory when migrating to version '1.7.6'.
 Optionally the version of the specifications to migrate the METS document to
 can be specified by using the '--to_version' argument::
 
-    python dpres_specification_migrator/transform_mets.py
-    tests/data/mets/mets_1_4.xml --to_version 1.6 --workspace ./workspace
+    transform-mets tests/data/mets/mets_1_4.xml --to_version 1.6 --workspace ./workspace
 
 The argument '--to_version' accepts values from a predifined list only. Please
 note that it is not possible to convert a document to an older version of the
@@ -90,9 +80,7 @@ specifications than the document's version itself.
 
 To transform the METS into a DIP METS use the '--record_status' argument::
 
-    python dpres_specification_migrator/transform_mets.py
-    tests/data/mets/mets_1_4.xml --record_status dissemination --workspace
-    ./workspace --contractid <contract ID> --objid <objid>
+    transform-mets tests/data/mets/mets_1_4.xml --record_status dissemination --workspace ./workspace --contractid <contract ID> --objid <objid>
 
 This will create a DIP METS document from the input file as well as migrating
 it to a newer version if possible.
@@ -104,6 +92,24 @@ ignored if the '--record_status' is not 'dissemination' (the OBJID of the METS
 document is not changed when migrating to a newer version of the specifications
 without migrating to a DIP).
 
+Installation using Python Virtualenv for development purposes
+-------------------------------------------------------------
+
+Create a virtual environment::
+    
+    python3 -m venv venv
+
+Run the following to activate the virtual environment::
+
+    source venv/bin/activate
+
+Install the required software with commands::
+
+    pip install --upgrade pip==20.2.4 setuptools
+    pip install -r requirements_github.txt
+    pip install .
+
+To deactivate the virtual environment, run ``deactivate``. To reactivate it, run the ``source`` command above.
 
 Copyright    
 ---------
