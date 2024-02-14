@@ -414,7 +414,8 @@ def serialize_mets(root):
     version = root.xpath('@*[local-name() = "CATALOG"] | '
                          '@*[local-name() = "SPECIFICATION"]')[0]
 
-    if version in ['1.7.0', '1.7.1', '1.7.2', '1.7.3', '1.7.4', '1.7.5']:
+    if version in ['1.7.0', '1.7.1', '1.7.2', '1.7.3', '1.7.4', '1.7.5',
+                   '1.7.6']:
         mets_b = mets_b.replace(
             b'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
             b'xmlns:fi="http://digitalpreservation.fi/'
