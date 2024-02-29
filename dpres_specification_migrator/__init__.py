@@ -1,2 +1,2 @@
 """dpres-specification-migrator module."""
-__version__ = '0.17'
+__version__ = '0.18'
