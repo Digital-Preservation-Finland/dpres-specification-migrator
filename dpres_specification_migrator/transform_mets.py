@@ -352,7 +352,7 @@ def migrate_mets(root, to_catalog, full_cur_catalog, contract=None):
 
     root.xpath('./mets:metsHdr', namespaces=NAMESPACES)[0].set(
         'LASTMODDATE', datetime.datetime.now(datetime.timezone.utc).replace(
-            microsecond=0).isoformat() + 'Z')
+            microsecond=0).isoformat())
 
     if not VERSIONS[to_catalog]['KDK']:
         for elem in root.xpath('./mets:dmdSec/mets:mdWrap[./@MDTYPE="MARC"]',
@@ -489,7 +489,7 @@ def set_dip_metshdr(root):
         hdr.set(
             'CREATEDATE',
             datetime.datetime.now(datetime.timezone.utc).replace(
-                microsecond=0).isoformat() + 'Z')
+                microsecond=0).isoformat())
         hdr.set('RECORDSTATUS', 'dissemination')
         if 'LASTMODDATE' in hdr.attrib:
             del hdr.attrib['LASTMODDATE']
