@@ -66,8 +66,8 @@ VERSIONS = {
         'fix_old': False,
         'supported': True,
         'KDK': False,
-        'catalog_version': '1.7.6',
-        'newest_specification': '1.7.6'
+        'catalog_version': '1.7.7',
+        'newest_specification': '1.7.7'
     }
 }
 

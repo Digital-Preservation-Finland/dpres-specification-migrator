@@ -66,7 +66,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.6'
+    version = '1.7.7'
 
     old_root = h.readfile(metsfile).getroot().attrib
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -102,7 +102,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.6'
+                version = catalog + '.7'
             else:
                 version = catalog + '.0'
 
@@ -132,7 +132,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         if version == '1.6.0' and cat_spec == 'SPECIFICATION':
             version = '1.6.1'
 
-        if version == '1.7.6':
+        if version == '1.7.7':
             assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}%s' % cat_spec) == version
@@ -173,7 +173,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.6'
+    version = '1.7.7'
     filename = objid + '.xml'
 
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -200,7 +200,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert len(root.xpath('./*')) == old_elem_count
         if catalog:
             if catalog == '1.7':
-                version = catalog + '.6'
+                version = catalog + '.7'
             else:
                 version = catalog + '.0'
 
@@ -222,7 +222,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert not root.xpath('./mets:metsHdr/@LASTMODDATE',
                               namespaces=m.NAMESPACES)
 
-        if version == '1.7.6':
+        if version == '1.7.7':
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}CATALOG') == version
             assert root.get('{http://digitalpreservation.fi/schemas/'
@@ -406,7 +406,7 @@ def test_migrate_mets():
     assert objid == 'xxx'
     assert len(dip.attrib) == 6
     assert dip.get('{%s}CONTRACTID' % fi_ns) == 'aaa'
-    assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.6'
+    assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.7'
     assert dip.get('OBJID') == 'xxx'
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
@@ -436,17 +436,17 @@ def test_migrate_mets():
                           ("1.6.0", "1.7",
                            "fi-preservation-no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
-                          ("1.7.6", "1.7",
+                          ("1.7.7", "1.7",
                            "no-file-format-validation",
                            "no-file-format-validation"),
-                          ("1.7.6", "1.7",
+                          ("1.7.7", "1.7",
                            "fi-preservation-no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
-                         ])
+                          ])
 def test_use_prefix(orig_version, target_version, orig_use, expected):
     """Tests that the migration changes the prefix in the USE attribute
     correctly to fi-dpres-no-file-format-validation. This should be done,
-    except if original version is 1.7.6 and USE=no-file-format-validation.
+    except if original version is 1.7.7 and USE=no-file-format-validation.
     :orig_version: Original spec version number
     :target_version: Target spec version number
     :orig_use: Original USE attribute value
@@ -467,8 +467,8 @@ def test_use_prefix(orig_version, target_version, orig_use, expected):
         '</mets:mets>'
     )
     mets_xml = ET.fromstring(mets)
-    # Migrate to newer version before migration, if 1.7.6 original needed
-    if orig_version == "1.7.6":
+    # Migrate to newer version before migration, if 1.7.7 original needed
+    if orig_version == "1.7.7":
         (mets_xml, _) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
 
     elem = mets_xml.xpath('//mets:file', namespaces=m.NAMESPACES)[0]
@@ -495,7 +495,7 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" '
         'PROFILE="http://digitalpreservation.fi/'
         'mets-profiles/cultural-heritage" '
-        'OBJID="xxx" fi:CATALOG="1.7.6"/>'
+        'OBJID="xxx" fi:CATALOG="1.7.7"/>'
     )
 
     intended_result = (
@@ -509,7 +509,7 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" '
         'PROFILE="http://digitalpreservation.fi/'
         'mets-profiles/cultural-heritage" '
-        'OBJID="xxx" fi:CATALOG="1.7.6"/>'
+        'OBJID="xxx" fi:CATALOG="1.7.7"/>'
     )
 
     mets_xml = ET.fromstring(mets_input)

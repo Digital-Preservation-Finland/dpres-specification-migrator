@@ -1,6 +1,11 @@
 Release notes
 =============
 
+Unreleased
+----------
+
+Update migrator to meet specifications 1.7.7.
+
 Version 0.20
 ------------
 
