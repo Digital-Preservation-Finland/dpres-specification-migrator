@@ -4,6 +4,9 @@ Release notes
 Unreleased
 ----------
 
+Version 0.21
+------------
+
 Update migrator to meet specifications 1.7.7.
 
 Version 0.20
