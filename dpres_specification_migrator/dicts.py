@@ -80,6 +80,12 @@ MDTYPEVERSIONS = {'PREMIS:OBJECT': '2.3', 'PREMIS:RIGHTS': '2.3',
                   'DDI': '2.5.1', 'EAC-CPF': '2010_revised', 'VRACore': '4.0',
                   'LIDO': '1.0', 'METSRIGHTS': 'n/a'}
 
+_ADDRESS_W3_ROLE = "{http://www.w3.org/1999/xlink}role"
+_ADDRESS_W3_ARCROLE = "{http://www.w3.org/1999/xlink}arcrole"
+_ADDRESS_W3_TITLE = "{http://www.w3.org/1999/xlink}title"
+_ADDRESS_W3_SHOW = "{http://www.w3.org/1999/xlink}show"
+_ADDRESS_W3_ACTUATE = "'{http://www.w3.org/1999/xlink}show'"
+
 
 ATTRIBS_TO_DELETE = {'.': ['ID', 'TYPE',
                            ('{http://www.kdk.fi/standards/mets/'
@@ -101,11 +107,11 @@ ATTRIBS_TO_DELETE = {'.': ['ID', 'TYPE',
                      'mets:amdSec/mets:digiprovMD/mets:mdRef': [
                          'ID', 'XPTR', 'MIMETYPE', 'SIZE', 'CREATED',
                          'CHECKSUM', 'CHECKSUMTYPE', 'LABEL',
-                         '{http://www.w3.org/1999/xlink}role',
-                         '{http://www.w3.org/1999/xlink}arcrole',
-                         '{http://www.w3.org/1999/xlink}title',
-                         '{http://www.w3.org/1999/xlink}show',
-                         '{http://www.w3.org/1999/xlink}actuate'],
+                         _ADDRESS_W3_ROLE,
+                         _ADDRESS_W3_ARCROLE,
+                         _ADDRESS_W3_TITLE,
+                         _ADDRESS_W3_SHOW,
+                         _ADDRESS_W3_ACTUATE],
                      'mets:fileSec': ['ID'],
                      'mets:fileSec/mets:fileGrp': ['ID', 'ADMID', 'VERSDATE'],
                      'mets:fileSec/mets:fileGrp/mets:file': [
@@ -113,19 +119,19 @@ ATTRIBS_TO_DELETE = {'.': ['ID', 'TYPE',
                          'CHECKSUMTYPE', 'SEQ', 'DMDID', 'BEGIN', 'END',
                          'BETYPE'],
                      'mets:fileSec/mets:fileGrp/mets:file/mets:FLocat': [
-                         'ID', '{http://www.w3.org/1999/xlink}role',
-                         '{http://www.w3.org/1999/xlink}arcrole',
-                         '{http://www.w3.org/1999/xlink}title',
-                         '{http://www.w3.org/1999/xlink}show',
-                         '{http://www.w3.org/1999/xlink}actuate'],
+                         'ID', _ADDRESS_W3_ROLE,
+                         _ADDRESS_W3_ARCROLE,
+                         _ADDRESS_W3_TITLE,
+                         _ADDRESS_W3_SHOW,
+                         _ADDRESS_W3_ACTUATE],
                      'mets:structMap//mets:div': [
                          '{http://www.w3.org/1999/xlink}label'],
                      'mets:structMap//mets:div/mets:fptr': [
                          'ID', 'CONTENTIDS'],
                      'mets:structMap//mets:div/mets:mptr': [
                          'ID', 'CONTENTIDS',
-                         '{http://www.w3.org/1999/xlink}role',
-                         '{http://www.w3.org/1999/xlink}arcrole',
-                         '{http://www.w3.org/1999/xlink}title',
-                         '{http://www.w3.org/1999/xlink}show',
-                         '{http://www.w3.org/1999/xlink}actuate']}
+                         _ADDRESS_W3_ROLE,
+                         _ADDRESS_W3_ARCROLE,
+                         _ADDRESS_W3_TITLE,
+                         _ADDRESS_W3_SHOW,
+                         _ADDRESS_W3_ACTUATE]}
