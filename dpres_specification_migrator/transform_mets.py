@@ -428,9 +428,8 @@ def get_fi_ns(catalog):
     """
     fi_ns = 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
 
-    if catalog in VERSIONS:
-        if VERSIONS[catalog]['KDK']:
-            fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
+    if VERSIONS.get(catalog, {}).get('KDK'):
+        fi_ns = 'http://www.kdk.fi/standards/mets/kdk-extensions'
 
     return fi_ns
 
