@@ -210,13 +210,11 @@ def set_charset_from_textmd(root):
                 for admid in mets_file.get('ADMID').split(' '):
                     textfiles[admid] = charset
 
-    count = 0
     for textfile in root.xpath('./mets:amdSec/mets:techMD',
                                namespaces=NAMESPACES):
         if (textfile.get('ID') in textfiles.keys() and
                 textfile.xpath("./mets:mdWrap[@MDTYPE='PREMIS:OBJECT']",
                                namespaces=NAMESPACES)):
-            count += 1
             file_id = textfile.get('ID')
             charset = textfiles[file_id]
             formatname = textfile.xpath('.//premis:formatName',
