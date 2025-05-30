@@ -28,7 +28,6 @@ def main(arguments=None):
     full_version = root.xpath('@*[local-name() = "CATALOG"] | '
                               '@*[local-name() = "SPECIFICATION"]')[0]
     version = full_version[:3]
-    breakpoint()
     supported_versions = []
     for key, value in VERSIONS.items():
         if value['supported']:
@@ -294,23 +293,7 @@ def set_charset_from_textmd(root: ET._Element) -> ET._Element:
     :return root: The mets root as xml
    """
 
-    textmds = {}
-    for techmd in root.xpath('./mets:amdSec/mets:techMD',
-                             namespaces=NAMESPACES):
-        if techmd.xpath("./mets:mdWrap[@MDTYPE='TEXTMD']",
-                        namespaces=NAMESPACES):
-            charset = techmd.xpath(".//*[local-name() = 'charset']")[0].text
-            techmd_id = techmd.get('ID')
-            textmds[techmd_id] = charset
-
-    textfiles = {}
-    for mets_file in root.xpath('./mets:fileSec//mets:file',
-                                namespaces=NAMESPACES):
-        for key in textmds:
-            if key in mets_file.get('ADMID'):
-                charset = textmds[key]
-                for admid in mets_file.get('ADMID').split(' '):
-                    textfiles[admid] = charset
+    textfiles = collect_textfiles(root)
 
     for textfile in root.xpath('./mets:amdSec/mets:techMD',
                                namespaces=NAMESPACES):
@@ -337,6 +320,34 @@ def set_charset_from_textmd(root: ET._Element) -> ET._Element:
             format_name.text = format_name.text + '; charset=' + charset
 
     return root
+
+
+def collect_textfiles(root: ET.Element) -> dict:
+    """Collects all textfiles from the METS document.
+
+    :param root: The mets root as xml
+
+    :returns: dict of textfiles
+    """
+
+    textmds = {}
+    for techmd in root.xpath('./mets:amdSec/mets:techMD',
+                             namespaces=NAMESPACES):
+        if techmd.xpath("./mets:mdWrap[@MDTYPE='TEXTMD']",
+                        namespaces=NAMESPACES):
+            charset = techmd.xpath(".//*[local-name() = 'charset']")[0].text
+            techmd_id = techmd.get('ID')
+            textmds[techmd_id] = charset
+
+    textfiles = {}
+    for mets_file in root.xpath('./mets:fileSec//mets:file',
+                                namespaces=NAMESPACES):
+        for key in textmds:
+            if key in mets_file.get('ADMID'):
+                charset = textmds[key]
+                for admid in mets_file.get('ADMID').split(' '):
+                    textfiles[admid] = charset
+    return textfiles
 
 
 def move_mix(root: ET._Element,
