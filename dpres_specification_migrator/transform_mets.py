@@ -28,7 +28,7 @@ def main(arguments=None):
     full_version = root.xpath('@*[local-name() = "CATALOG"] | '
                               '@*[local-name() = "SPECIFICATION"]')[0]
     version = full_version[:3]
-
+    breakpoint()
     supported_versions = []
     for key, value in VERSIONS.items():
         if value['supported']:
@@ -94,7 +94,13 @@ def main(arguments=None):
 
 
 def parse_arguments(arguments: list) -> argparse.Namespace:
-    """Create arguments parser and return parsed command line arguments."""
+    """Create arguments parser and return parsed command line arguments.
+
+    :param arguments: List of arguments
+
+    :returns: Parsed arguments
+    """
+
     parser = argparse.ArgumentParser(description='Transform METS')
     parser.add_argument('filepath', type=str, help='Path to METS file')
     parser.add_argument('--output_filename', dest='filename',
@@ -123,41 +129,47 @@ def migrate_mets(root: ET._Element,
                  contract: str = None
                  ) -> tuple[ET._Element, str]:
     """Migrates the METS document from the METS data in XML.
-
-    1) Collects all attributes from the METS root element
-    2) Sets the correct profile for the METS document
-    3) Sets the correct CATALOG or SPECIFICATION
-    4) Updates the schemaLocation attribute
-    5) Adds CONTRACTID and migrates old KDK specific profile data if
+    1) Migrates from catalog version 1.4 or 1.4.1 to newer
+    2) Collects the fi: extension namespace
+    3) Collects all attributes from the METS root element
+    4) Sets the correct profile for the METS document
+    5) Sets the correct CATALOG or SPECIFICATION
+    6) Updates the schemaLocation attribute
+    7) Adds CONTRACTID and migrates old KDK specific profile data if
        to_catalog specifies a newer non-KDK profile
-    6) Writes a new mets root element for the METS document
-    7) Appends all child elements from the supplied root element
-       to the new METS
     8) Modifies the LASTMODDATE in the metsHdr
-    9) Updates no-file-format-validation key, if needed
-    10) Writes the updated attribute set to the new root
+    9) Set MDTYPE
+    10) Updates no-file-format-validation key, if needed
+    11) Fix fi-preservation- prefix
+    12) Writes a new mets root element for the METS document
+    13) Appends all child elements from the supplied root element
+        to the new METS
+    14) Writes the updated attribute set to the new root
 
-    :root: the mets root as xml
-    :to_catalog: the intended catalog version of the METS document
-    :full_cur_catalog: the current full catalog version of the METS document
-    :contract: the CONTRACTID of the METS document
+    :param root: The mets root as xml
+    :param to_catalog: The intended catalog version of the METS document
+    :param full_cur_catalog: The current full catalog version of the
+                             METS document
+    :param contract: The CONTRACTID of the METS document
 
-    :returns: a METS root as xml
+    :returns: The METS root as xml
     """
+    # 1
     if VERSIONS[full_cur_catalog[:3]]['fix_old']:
         root = fix_1_4_mets(root)
-
+    # 2
     fi_ns = get_fi_ns(full_cur_catalog[:3])
 
-    # 1
+    # 3
     root_attribs = root.attrib
 
-    # 2
+    # 4
     if root_attribs['PROFILE'] == 'http://www.kdk.fi/kdk-mets-profile' \
             and not VERSIONS[to_catalog]['KDK']:
         root_attribs['PROFILE'] = 'http://digitalpreservation.fi/' \
                   'mets-profiles/cultural-heritage'
-    # 3
+
+    # 5
     if '{%s}CATALOG' % fi_ns in root_attribs:
         root_attribs['{%s}CATALOG' % fi_ns] = \
             VERSIONS[to_catalog]['catalog_version']
@@ -165,80 +177,48 @@ def migrate_mets(root: ET._Element,
         root_attribs['{%s}SPECIFICATION' % fi_ns] = \
             VERSIONS[to_catalog]['newest_specification']
 
+    # 6
     root_attribs[
         '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
             'http://www.loc.gov/METS/ '
             'http://digitalpreservation.fi/schemas/mets/mets.xsd')
-    # 5
-    contractid = ''
-    if not VERSIONS[to_catalog]['KDK']:
-        if '{%s}CONTRACTID' % fi_ns in root.attrib:
-            contractid = root.get('{%s}CONTRACTID' % fi_ns)
-            if contract:
-                print(
-                        f"Warning: the argument contract with the value "
-                        f"{contract} was ignored. The existing @CONTRACTID of "
-                        f"the METS file,{contractid} was not overwritten."
-                    )
-        else:
-            contractid = contract
-        root_attribs['{%s}CONTRACTID' % fi_ns] = contractid
-
-        for elem in root.xpath(
-                './mets:amdSec/mets:digiprovMD/'
-                'mets:mdRef[@OTHERMDTYPE="KDKPreservationPlan"]',
-                namespaces=NAMESPACES):
-            elem.set('OTHERMDTYPE', 'FiPreservationPlan')
-
-    elif contract:
-        print(
-                f"Warning: the argument contract {contract} was ignored. "
-                f"The requested catalog version {to_catalog} does not support "
-                f"@CONTRACTID."
-            )
+    # 7
+    root_attribs = set_contractid(to_catalog,
+                                  root,
+                                  contract,
+                                  fi_ns,
+                                  root_attribs,
+                                  full_cur_catalog)
     # 8
     root.xpath('./mets:metsHdr', namespaces=NAMESPACES)[0].set(
         'LASTMODDATE', datetime.datetime.now(datetime.timezone.utc).replace(
             microsecond=0).isoformat())
 
-    if not VERSIONS[to_catalog]['KDK']:
-        for elem in root.xpath('./mets:dmdSec/mets:mdWrap[./@MDTYPE="MARC"]',
-                               namespaces=NAMESPACES):
-            attr = elem.attrib
-            if 'marc=finmarc' in attr['MDTYPEVERSION']:
-                attr['MDTYPE'] = 'OTHER'
-                attr['OTHERMDTYPE'] = 'MARC'
     # 9
-    # If the old term no-file-format-validation (without prefix) is used in
-    # METS with specification 1.7.3 or newer, then it's there for other
-    # purposes not related to DPS.
-    if (VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in [
-            '1.7.0', '1.7.1', '1.7.2']):
-        for elem in root.xpath(
-                './mets:fileSec/mets:fileGrp/mets:file[@USE='
-                '"no-file-format-validation"]', namespaces=NAMESPACES):
-            elem.attrib['USE'] = 'fi-dpres-no-file-format-validation'
+    root = set_mdtype(to_catalog, root)
 
+    # 10
+    root = update_no_file_format_validation_key(root, full_cur_catalog)
+
+    # 11
     # Regardless of the version, we fix fi-preservation- prefix anyway.
     for elem in root.xpath(
             './mets:fileSec/mets:fileGrp/mets:file[@USE='
             '"fi-preservation-no-file-format-validation"]',
             namespaces=NAMESPACES):
         elem.attrib['USE'] = 'fi-dpres-no-file-format-validation'
-    # 10
+
+    # 12
     elems = []
     for elem in root.xpath('./*'):
         elems.append(elem)
 
-    if not VERSIONS[full_cur_catalog[:3]]['KDK']:
-        NAMESPACES['fi'] = ('http://digitalpreservation.fi/schemas'
-                            '/mets/fi-extensions')
-    else:
-        NAMESPACES['fi'] = 'http://www.kdk.fi/standards/mets/kdk-extensions'
-
-    new_mets = mets.mets(profile=root_attribs['PROFILE'], child_elements=elems,
+    # 13
+    new_mets = mets.mets(profile=root_attribs['PROFILE'],
+                         child_elements=elems,
                          namespaces=NAMESPACES)
 
+    # 14
     for attrib in root_attribs:
         new_mets.set(attrib, root_attribs[attrib])
 
@@ -248,17 +228,18 @@ def migrate_mets(root: ET._Element,
 def fix_1_4_mets(root: ET._Element) -> ET._Element:
     """Migrates from catalog version 1.4 or 1.4.1 to newer by writing
     the following changes into the mets file:
-    1) adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
-    2) writes charset from textMD to premis:formatName for text files
-    3) moves MIX metadata blocks from  the
-      premis:objectCharacteristicsExtension metadata to an own techMD
-      metadata block
-    4) adds a new div as parent div if structmap has several child divs
-    5) sets METSRIGHTS as OTHERMDTYPE
+    1) Adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
+    2) Writes charset from textMD to premis:formatName for text files
+    3) Moves MIX metadata blocks from the
+       premis:objectCharacteristicsExtension metadata to an own techMD
+       metadata block
+    4) Adds a new div as parent div if structmap has several child divs
+    5) Sets METSRIGHTS as OTHERMDTYPE
 
-    :param root: the mets root as xml
-    :return root: the mets root as xml
-    """
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
+   """
 
     NAMESPACES['textmd'] = 'http://www.kdk.fi/standards/textmd'
 
@@ -277,8 +258,11 @@ def fix_1_4_mets(root: ET._Element) -> ET._Element:
 
 
 def add_mdtypeversion(root: ET._Element) -> ET._Element:
-    """
-    adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
+    """Adds the @MDTYPEVERSION attribute to all mets:mdWrap elements.
+
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
     """
     for elem in root.xpath("./mets:amdSec/*/mets:mdWrap | ./mets:dmdSec/"
                            "mets:mdWrap", namespaces=NAMESPACES):
@@ -303,7 +287,13 @@ def set_charset_from_textmd(root: ET._Element) -> ET._Element:
     The function will search for textMD metadata both
     as a separate techMD metadata block within mets:amdSec
     and within the premis:objectCharacteristicsExtension
-    metadata for the techMD in question."""
+    metadata for the techMD in question.
+
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
+   """
+
     textmds = {}
     for techmd in root.xpath('./mets:amdSec/mets:techMD',
                              namespaces=NAMESPACES):
@@ -349,18 +339,19 @@ def set_charset_from_textmd(root: ET._Element) -> ET._Element:
     return root
 
 
-def move_mix(root: ET._Element, premis_mix: ET._Element) -> ET._Element:
+def move_mix(root: ET._Element,
+             premis_mix: ET._Element
+             ) -> ET._Element:
     """Moves current MIX metadata block from
     premis:objectCharacteristicsExtension to an own mets:techMD
     block and appends the created ID of the the new techMD block
     to the file's AMDID attribute in the mets:fileSec.
 
-    :root: the METS data as XML
-    :premis_mix: the MIX metadata within premis
+    :root: The METS data as XML
+    :premis_mix: The MIX metadata within premis
 
-    :returns: the METS data root
+    :returns: The METS data root
     """
-    import pdb; pdb.set_trace()
     mix_id = '_' + str(uuid4())
     techmd_id = premis_mix.xpath('./ancestor::mets:techMD',
                                  namespaces=NAMESPACES)[0].get('ID')
@@ -385,8 +376,11 @@ def move_mix(root: ET._Element, premis_mix: ET._Element) -> ET._Element:
 
 
 def update_divs(root: ET._Element) -> ET._Element:
-    """
-    adds a new div as parent div if structmap has several child divs
+    """Adds a new div as parent div if structmap has several child divs.
+
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
     """
     list_amdsec = []
     mets_amdsec = root.xpath('./mets:amdSec', namespaces=NAMESPACES)[0]
@@ -414,8 +408,11 @@ def update_divs(root: ET._Element) -> ET._Element:
 
 
 def update_metsrights(root: ET._Element) -> ET._Element:
-    """
-    sets METSRIGHTS as OTHERMDTYPE
+    """Sets METSRIGHTS as OTHERMDTYPE.
+
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
     """
     for rightsmd in root.xpath('./mets:amdSec/mets:rightsMD',
                                namespaces=NAMESPACES):
@@ -427,16 +424,120 @@ def update_metsrights(root: ET._Element) -> ET._Element:
     return root
 
 
+def set_contractid(to_catalog: str,
+                   root: ET._Element,
+                   contract: str,
+                   fi_ns: str,
+                   root_attribs: ET._Attrib,
+                   full_cur_catalog: ET._ElementUnicodeResult,
+                   ) -> ET._Attrib:
+    """Adds CONTRACTID and migrates old KDK specific profile data if
+    to_catalog specifies a newer non-KDK profile
+
+    :param to_catalog: The intended catalog version of the METS document
+    :param root: The mets root as xml
+    :param fi_ns: fi extension namespace
+    :param contract: The CONTRACTID of the METS document
+    :param root_attribs: Attributes from the METS root element
+    :param full_cur_catalog: The current full catalog version of the
+                             METS document
+
+    :returns: Attributes from the METS root element
+    """
+    contractid = ''
+    if not VERSIONS[to_catalog]['KDK']:
+        if '{%s}CONTRACTID' % fi_ns in root.attrib:
+            contractid = root.get('{%s}CONTRACTID' % fi_ns)
+            if contract:
+                print(
+                        f"Warning: the argument contract with the value "
+                        f"{contract} was ignored. The existing @CONTRACTID of "
+                        f"the METS file,{contractid} was not overwritten."
+                    )
+        else:
+            contractid = contract
+        root_attribs['{%s}CONTRACTID' % fi_ns] = contractid
+
+        for elem in root.xpath(
+                './mets:amdSec/mets:digiprovMD/'
+                'mets:mdRef[@OTHERMDTYPE="KDKPreservationPlan"]',
+                namespaces=NAMESPACES):
+            elem.set('OTHERMDTYPE', 'FiPreservationPlan')
+
+    elif contract:
+        print(
+                f"Warning: the argument contract {contract} was ignored. "
+                f"The requested catalog version {to_catalog} does not support "
+                f"@CONTRACTID."
+            )
+
+    if not VERSIONS[full_cur_catalog[:3]]['KDK']:
+        NAMESPACES['fi'] = ('http://digitalpreservation.fi/schemas'
+                            '/mets/fi-extensions')
+    else:
+        NAMESPACES['fi'] = 'http://www.kdk.fi/standards/mets/kdk-extensions'
+    return root_attribs
+
+
+def set_mdtype(to_catalog, root):
+    """ Sets MDTYPE
+
+    :param to_catalog: The intended catalog version of the METS document
+    :param root: The mets root as xml
+
+    :returns: The mets root as xml
+
+    """
+    if not VERSIONS[to_catalog]['KDK']:
+        for elem in root.xpath('./mets:dmdSec/mets:mdWrap[./@MDTYPE="MARC"]',
+                               namespaces=NAMESPACES):
+            attr = elem.attrib
+            if 'marc=finmarc' in attr['MDTYPEVERSION']:
+                attr['MDTYPE'] = 'OTHER'
+                attr['OTHERMDTYPE'] = 'MARC'
+    return root
+
+
+def update_no_file_format_validation_key(root: ET._Element,
+                                         full_cur_catalog:
+                                         ET._ElementUnicodeResult
+                                         ) -> ET._Element:
+    """If the old term no-file-format-validation (without prefix) is used in
+    METS with specification 1.7.3 or newer, then it's there for other
+    purposes not related to DPS.
+
+    :param root: The mets root as xml
+    :param full_cur_catalog: The current full catalog version of the
+                             METS document
+
+    :returns: The mets root as xml
+    """
+    versions = ['1.7.0', '1.7.1', '1.7.2']
+    if (VERSIONS[full_cur_catalog[:3]]['KDK'] or full_cur_catalog in versions):
+        for elem in root.xpath(
+                './mets:fileSec/mets:fileGrp/mets:file[@USE='
+                '"no-file-format-validation"]', namespaces=NAMESPACES):
+            elem.attrib['USE'] = 'fi-dpres-no-file-format-validation'
+    return root
+
+
 def transform_to_dip(root: ET._Element,
                      cur_catalog: str,
                      to_catalog: str,
                      objid: str = None
                      ) -> tuple[ET._Element, str]:
-    """
+    """ Migrates the METS document
     1) Sets an @OBJID for the METS document
     2) Removes unsupported attributes from the XML data
     3) Updates / writes a new metsHdr block
     4) Sets the CATALOG attribute (because SPECIFICATION is removed)
+
+    :param root: The mets root as xml
+    :param cur_catalog: Mets document version
+    :param to_catalog: The intended catalog version of the METS document
+    :param objid: Object ID
+
+    :returns: Updated `root` and `objid`
     """
     fi_ns = get_fi_ns(cur_catalog)
 
@@ -458,7 +559,12 @@ def transform_to_dip(root: ET._Element,
 def get_fi_ns(catalog: str) -> str:
     """Returns the namespace for the fi: extension. The value depends
     on catalog version of the METS document.
+
+    :param catalog: The intended catalog version of the METS document
+
+    :return fi_ns: The fi extension namespace
     """
+
     fi_ns = 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
 
     if VERSIONS.get(catalog, {}).get('KDK'):
@@ -468,7 +574,13 @@ def get_fi_ns(catalog: str) -> str:
 
 
 def remove_attributes(root: ET._Element) -> ET._Element:
-    """Removes unsupported attributes from METS file."""
+    """Removes unsupported attributes from the METS file.
+
+    :param root: The mets root as xml
+
+    :return root: The mets root as xml
+    """
+
     for key in ATTRIBS_TO_DELETE:
         for elem in root.xpath(f"./{key}", namespaces=NAMESPACES):
             for value in ATTRIBS_TO_DELETE[key]:
@@ -483,7 +595,12 @@ def set_dip_metshdr(root: ET._Element) -> ET._Element:
     optionally the RECORDSTATUS attribute. Sets the agent responsible for
     the creation of the transformed mets file. Removes other attributes
     for the metsHdr element.
+
+    :param root: The mets root as xlm
+
+    :returns: The mets root as xlm
     """
+
     for hdr in root.xpath('./mets:metsHdr', namespaces=NAMESPACES):
         for docid in hdr.xpath('./mets:metsDocumentID', namespaces=NAMESPACES):
             hdr.remove(docid)
@@ -505,6 +622,8 @@ def set_dip_metshdr(root: ET._Element) -> ET._Element:
 def serialize_mets(root: ET._Element) -> bytes:
     """Serializes the METS XML data to byte string. Then replaces some
     namespace declarations, since that can't be done in lxml.
+
+    :param root: The mets root as xlm
 
     :returns: METS data as byte string
     """
