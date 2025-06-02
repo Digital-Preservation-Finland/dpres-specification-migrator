@@ -4,6 +4,7 @@ Preservation Services. Also possible to change the RECORDSTATUS of the
 METS document to create a dissemination information package.
 """
 
+from __future__ import annotations
 import argparse
 import copy
 import datetime
@@ -122,11 +123,11 @@ def parse_arguments(arguments: list) -> argparse.Namespace:
     return parser.parse_args(arguments)
 
 
-def migrate_mets(root: ET._Element,
+def migrate_mets(root: ET.ElementBase,
                  to_catalog: str,
-                 full_cur_catalog: ET._ElementUnicodeResult,
-                 contract: str = None
-                 ) -> tuple[ET._Element, str]:
+                 full_cur_catalog: str,
+                 contract: str | None = None
+                 ) -> tuple[ET.ElementBase, str]:
     """Migrates the METS document from the METS data in XML.
     1) Migrates from catalog version 1.4 or 1.4.1 to newer
     2) Collects the fi: extension namespace
@@ -224,7 +225,7 @@ def migrate_mets(root: ET._Element,
     return new_mets, root_attribs['OBJID']
 
 
-def fix_1_4_mets(root: ET._Element) -> ET._Element:
+def fix_1_4_mets(root: ET.ElementBase) -> ET.ElementBase:
     """Migrates from catalog version 1.4 or 1.4.1 to newer by writing
     the following changes into the mets file:
     1) Adds the @MDTYPEVERSION attribute to all mets:mdWrap elements
@@ -256,7 +257,7 @@ def fix_1_4_mets(root: ET._Element) -> ET._Element:
     return root
 
 
-def add_mdtypeversion(root: ET._Element) -> ET._Element:
+def add_mdtypeversion(root: ET.ElementBase) -> ET.ElementBase:
     """Adds the @MDTYPEVERSION attribute to all mets:mdWrap elements.
 
     :param root: The mets root as xml
@@ -280,7 +281,7 @@ def add_mdtypeversion(root: ET._Element) -> ET._Element:
     return root
 
 
-def set_charset_from_textmd(root: ET._Element) -> ET._Element:
+def set_charset_from_textmd(root: ET.ElementBase) -> ET.ElementBase:
     """Appends the charset from textMD metadata to the
     premis:formatName element if it is missing.
     The function will search for textMD metadata both
@@ -350,9 +351,9 @@ def collect_textfiles(root: ET.Element) -> dict:
     return textfiles
 
 
-def move_mix(root: ET._Element,
-             premis_mix: ET._Element
-             ) -> ET._Element:
+def move_mix(root: ET.ElementBase,
+             premis_mix: ET.ElementBase
+             ) -> ET.ElementBase:
     """Moves current MIX metadata block from
     premis:objectCharacteristicsExtension to an own mets:techMD
     block and appends the created ID of the the new techMD block
@@ -386,7 +387,7 @@ def move_mix(root: ET._Element,
     return root
 
 
-def update_divs(root: ET._Element) -> ET._Element:
+def update_divs(root: ET.ElementBase) -> ET.ElementBase:
     """Adds a new div as parent div if structmap has several child divs.
 
     :param root: The mets root as xml
@@ -418,7 +419,7 @@ def update_divs(root: ET._Element) -> ET._Element:
     return root
 
 
-def update_metsrights(root: ET._Element) -> ET._Element:
+def update_metsrights(root: ET.ElementBase) -> ET.ElementBase:
     """Sets METSRIGHTS as OTHERMDTYPE.
 
     :param root: The mets root as xml
@@ -436,11 +437,11 @@ def update_metsrights(root: ET._Element) -> ET._Element:
 
 
 def set_contractid(to_catalog: str,
-                   root: ET._Element,
-                   contract: str,
+                   root: ET.ElementBase,
+                   contract: str | None,
                    fi_ns: str,
                    root_attribs: ET._Attrib,
-                   full_cur_catalog: ET._ElementUnicodeResult,
+                   full_cur_catalog: str,
                    ) -> ET._Attrib:
     """Adds CONTRACTID and migrates old KDK specific profile data if
     to_catalog specifies a newer non-KDK profile
@@ -509,10 +510,9 @@ def set_mdtype(to_catalog, root):
     return root
 
 
-def update_no_file_format_validation_key(root: ET._Element,
-                                         full_cur_catalog:
-                                         ET._ElementUnicodeResult
-                                         ) -> ET._Element:
+def update_no_file_format_validation_key(root: ET.ElementBase,
+                                         full_cur_catalog: str
+                                         ) -> ET.ElementBase:
     """If the old term no-file-format-validation (without prefix) is used in
     METS with specification 1.7.3 or newer, then it's there for other
     purposes not related to DPS.
@@ -532,11 +532,11 @@ def update_no_file_format_validation_key(root: ET._Element,
     return root
 
 
-def transform_to_dip(root: ET._Element,
+def transform_to_dip(root: ET.ElementBase,
                      cur_catalog: str,
                      to_catalog: str,
                      objid: str = None
-                     ) -> tuple[ET._Element, str]:
+                     ) -> tuple[ET.ElementBase, str]:
     """ Migrates the METS document
     1) Sets an @OBJID for the METS document
     2) Removes unsupported attributes from the XML data
@@ -584,7 +584,7 @@ def get_fi_ns(catalog: str) -> str:
     return fi_ns
 
 
-def remove_attributes(root: ET._Element) -> ET._Element:
+def remove_attributes(root: ET.ElementBase) -> ET.ElementBase:
     """Removes unsupported attributes from the METS file.
 
     :param root: The mets root as xml
@@ -601,7 +601,7 @@ def remove_attributes(root: ET._Element) -> ET._Element:
     return root
 
 
-def set_dip_metshdr(root: ET._Element) -> ET._Element:
+def set_dip_metshdr(root: ET.ElementBase) -> ET.ElementBase:
     """Sets the new mets metsHdr. Changes the CREATEDATE attribute and
     optionally the RECORDSTATUS attribute. Sets the agent responsible for
     the creation of the transformed mets file. Removes other attributes
@@ -630,7 +630,7 @@ def set_dip_metshdr(root: ET._Element) -> ET._Element:
     return root
 
 
-def serialize_mets(root: ET._Element) -> bytes:
+def serialize_mets(root: ET.ElementBase) -> bytes:
     """Serializes the METS XML data to byte string. Then replaces some
     namespace declarations, since that can't be done in lxml.
 
