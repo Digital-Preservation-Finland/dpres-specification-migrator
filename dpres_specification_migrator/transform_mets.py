@@ -36,7 +36,7 @@ def main(arguments=None):
     if args.to_version not in supported_versions:
         print(
             (
-                f"Error: Unable to migrate METS document to METS catalog "
+                "Error: Unable to migrate METS document to METS catalog "
                 f"version {args.to_version}. Supported versions are "
                 f"{', '.join(supported_versions)}."
             ),
@@ -47,10 +47,10 @@ def main(arguments=None):
     if VERSIONS[args.to_version]['order'] < VERSIONS[version]['order']:
         print(
             (
-                f"Error: Unable to migrate METS document to an "
-                f"older catalog version. Current METS catalog "
+                "Error: Unable to migrate METS document to an "
+                "older catalog version. Current METS catalog "
                 f"version is {version}, while version {args.to_version} was "
-                f"requested."
+                "requested."
             ),
             file=sys.stderr
         )
@@ -60,7 +60,7 @@ def main(arguments=None):
             and not args.contractid:
         print(
             (
-                f"Error: CONTRACTID required when migrating "
+                "Error: CONTRACTID required when migrating "
                 f"to catalog version {args.to_version}."
             ),
             file=sys.stderr
@@ -70,8 +70,8 @@ def main(arguments=None):
     if args.objid and args.record_status != 'dissemination':
         print(
                 f"Warning: the argument objid with the value {args.objid} was "
-                f"ignored. METS OBJID was not changed in the migration to a "
-                f"newer version of the specifications."
+                "ignored. METS OBJID was not changed in the migration to a "
+                "newer version of the specifications."
             )
 
     (migrated_mets, objid) = migrate_mets(
@@ -462,7 +462,7 @@ def set_contractid(to_catalog: str,
             contractid = root.get('{%s}CONTRACTID' % fi_ns)
             if contract:
                 print(
-                        f"Warning: the argument contract with the value "
+                        "Warning: the argument contract with the value "
                         f"{contract} was ignored. The existing @CONTRACTID of "
                         f"the METS file,{contractid} was not overwritten."
                     )
@@ -480,7 +480,7 @@ def set_contractid(to_catalog: str,
         print(
                 f"Warning: the argument contract {contract} was ignored. "
                 f"The requested catalog version {to_catalog} does not support "
-                f"@CONTRACTID."
+                "@CONTRACTID."
             )
 
     if not VERSIONS[full_cur_catalog[:3]]['KDK']:
