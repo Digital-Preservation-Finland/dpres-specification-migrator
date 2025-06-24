@@ -88,7 +88,7 @@ def main(arguments=None):
     filename = args.filename
     with open(os.path.join(args.workspace, filename), 'wb+') as outfile:
         outfile.write(mets_b)
-        print(f"Wrote MEST file as {outfile.name} with OBJID: {objid}")
+        print(f"Wrote METS file as {outfile.name} with OBJID: {objid}")
 
     return 0
 
