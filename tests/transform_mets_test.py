@@ -23,6 +23,7 @@ TESTAIP_1_4_TEXTMD = 'tests/data/mets/mets_1_4_textmd.xml'
 TESTAIP_1_4_EXTENSIONS = 'tests/data/mets/mets_1_4_extensions.xml'
 TESTAIP_1_6 = 'tests/data/mets/mets_1_6.xml'
 TESTAIP_1_7 = 'tests/data/mets/mets_1_7.xml'
+TESTAIP_1_8 = 'tests/data/mets/mets_1_8.xml'
 
 
 def test_parse_arguments():
@@ -46,27 +47,30 @@ def test_parse_arguments():
         (TESTAIP_1_4, "testid2", '1.5', True, True),
         # Migrate 1.6 source, catalog not set, should pass
         (TESTAIP_1_6, "testid3", None, True, True),
+        # Migrate 1.7 source, catalog not set, should pass
+        (TESTAIP_1_7, "testid4", None, True, True),
         # Migrate 1.6 source to same version set excplicitly, should pass
-        (TESTAIP_1_6, "testid4", '1.6', True, True),
+        (TESTAIP_1_6, "testid5", '1.6', True, True),
         # Migrate 1.7 source to same version set excplicitly, should pass
-        (TESTAIP_1_7, "testid5", '1.7', False, True),
+        (TESTAIP_1_7, "testid6", '1.7', False, True),
         # Migrate mets to older version, should fail
-        (TESTAIP_1_6, "testid6", '1.5', True, False),
+        (TESTAIP_1_6, "testid7", '1.5', True, False),
         # Migrate mets to deprecated version, should fail
-        (TESTAIP_1_6, "testid7", '1.4', True, False),
+        (TESTAIP_1_6, "testid8", '1.4', True, False),
         # Migrate old mets to same but deprecated version, should fail
-        (TESTAIP_1_4, "testid8", '1.4', True, False),
+        (TESTAIP_1_4, "testid9", '1.4', True, False),
         # Migrate mets to unknown version, should fail
-        (TESTAIP_1_6, "testid9", 'foo', True, False),
-        # Migrate to version 1.7 without contractid, should fail
-        (TESTAIP_1_6, "testid10", '1.7', False, False),
+        (TESTAIP_1_6, "testid10", 'foo', True, False),
+        # Migrate to version 1.8 without contractid, should fail
+        (TESTAIP_1_6, "testid11", '1.8', False, False),
+        # Migrate 1.8 source to same version set excplicitly, should pass
+        (TESTAIP_1_8, "testid12", '1.8', False, True),
     ])
 def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
     """Tests that the script transform_mets outputs a METS document
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.7'
 
     old_root = h.readfile(metsfile).getroot().attrib
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -100,11 +104,16 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
 
         root = ET.parse(new_mets).getroot()
         assert len(root.xpath('./*')) == old_elem_count
+
+        # Migration should be to newest catalog version if not
+        # explicitly specified
         if catalog:
             if catalog == '1.7':
                 version = catalog + '.7'
             else:
                 version = catalog + '.0'
+        else:
+            version = '1.8.0'
 
         new_root = copy.deepcopy(root)
         new_attribs = new_root.attrib
@@ -132,7 +141,7 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
         if version == '1.6.0' and cat_spec == 'SPECIFICATION':
             version = '1.6.1'
 
-        if version == '1.7.7':
+        if version in ['1.7.7', '1.8.0']:
             assert 'CONTRACTID' in new_attribs
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}%s' % cat_spec) == version
@@ -158,22 +167,25 @@ def test_mets_migration(testpath, metsfile, objid, catalog, contract, valid):
     ["metsfile", "objid", "catalog", "valid"],
     [
         # Migrate 1.4 source, catalog not set, should pass
-        (TESTAIP_1_4, "testid11", None, True),
+        (TESTAIP_1_4, "testid13", None, True),
         # Migrate 1.4 source to set version, should pass
-        (TESTAIP_1_4, "testid2", '1.5', True),
+        (TESTAIP_1_4, "testid14", '1.5', True),
         # Migrate 1.6 source, catalog not set, should pass
-        (TESTAIP_1_6, "testid13", None, True),
+        (TESTAIP_1_6, "testid15", None, True),
+        # Migrate 1.7 source, catalog not set, should pass
+        (TESTAIP_1_7, "testid16", None, True),
         # Migrate 1.6 source to same version set excplicitly, should pass
-        (TESTAIP_1_6, "testid14", '1.6', True),
+        (TESTAIP_1_6, "testid17", '1.6', True),
         # Migrate 1.7 source to same version set excplicitly, should pass
-        (TESTAIP_1_7, "testid5", '1.7', True),
+        (TESTAIP_1_7, "testid18", '1.7', True),
+        # Migrate 1.8 source to same version set excplicitly, should pass
+        (TESTAIP_1_8, "testid19", '1.8', True),
     ])
 def test_dip_migration(testpath, metsfile, objid, catalog, valid):
     """Tests that the script transform_mets outputs a METS document
     and migrates the contents to a newer fi:CATALOG
     version as specified in the command line arguments.
     """
-    version = '1.7.7'
     filename = objid + '.xml'
 
     old_elem_count = len(h.readfile(metsfile).getroot().xpath('./*'))
@@ -198,11 +210,16 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
 
         root = ET.parse(new_mets).getroot()
         assert len(root.xpath('./*')) == old_elem_count
+
+        # Migration should be to newest catalog version if not
+        # explicitly specified
         if catalog:
             if catalog == '1.7':
                 version = catalog + '.7'
             else:
                 version = catalog + '.0'
+        else:
+            version = '1.8.0'
 
         assert root.get('OBJID') == objid
 
@@ -222,7 +239,7 @@ def test_dip_migration(testpath, metsfile, objid, catalog, valid):
         assert not root.xpath('./mets:metsHdr/@LASTMODDATE',
                               namespaces=m.NAMESPACES)
 
-        if version == '1.7.7':
+        if version in ['1.7.7', '1.8.0']:
             assert root.get('{http://digitalpreservation.fi/schemas/'
                             'mets/fi-extensions}CATALOG') == version
             assert root.get('{http://digitalpreservation.fi/schemas/'
@@ -401,12 +418,12 @@ def test_migrate_mets():
     )
     mets_xml = ET.fromstring(mets)
 
-    (dip, objid) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+    (dip, objid) = migrate_mets(mets_xml, '1.8', '1.6.0', contract='aaa')
 
     assert objid == 'xxx'
     assert len(dip.attrib) == 6
     assert dip.get('{%s}CONTRACTID' % fi_ns) == 'aaa'
-    assert dip.get('{%s}CATALOG' % fi_ns) == '1.7.7'
+    assert dip.get('{%s}CATALOG' % fi_ns) == '1.8.0'
     assert dip.get('OBJID') == 'xxx'
     assert dip.get('LABEL') == 'yyy'
     assert dip.get('PROFILE') == 'http://digitalpreservation.fi/' \
@@ -427,13 +444,13 @@ def test_migrate_mets():
 
 
 @pytest.mark.parametrize("orig_version, target_version, orig_use, expected",
-                         [("1.6.0", "1.7",
+                         [("1.6.0", "1.8",
                            "no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
                           ("1.6.0", "1.6",
                            "no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
-                          ("1.6.0", "1.7",
+                          ("1.6.0", "1.8",
                            "fi-preservation-no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
                           ("1.7.7", "1.7",
@@ -442,11 +459,19 @@ def test_migrate_mets():
                           ("1.7.7", "1.7",
                            "fi-preservation-no-file-format-validation",
                            "fi-dpres-no-file-format-validation"),
+                          ("1.8.0", "1.8",
+                           "no-file-format-validation",
+                           "no-file-format-validation"),
+                          ("1.8.0", "1.8",
+                           "fi-preservation-no-file-format-validation",
+                           "fi-dpres-no-file-format-validation"),
                           ])
 def test_use_prefix(orig_version, target_version, orig_use, expected):
     """Tests that the migration changes the prefix in the USE attribute
     correctly to fi-dpres-no-file-format-validation. This should be done,
-    except if original version is 1.7.7 and USE=no-file-format-validation.
+    except if original version is 1.7 or newer and
+    USE=no-file-format-validation.
+
     :orig_version: Original spec version number
     :target_version: Target spec version number
     :orig_use: Original USE attribute value
@@ -467,9 +492,12 @@ def test_use_prefix(orig_version, target_version, orig_use, expected):
         '</mets:mets>'
     )
     mets_xml = ET.fromstring(mets)
-    # Migrate to newer version before migration, if 1.7.7 original needed
-    if orig_version == "1.7.7":
-        (mets_xml, _) = migrate_mets(mets_xml, '1.7', '1.6.0', contract='aaa')
+
+    # Set up test data to use newer version before migration, if 1.7
+    # or newer original is to be tested
+    if orig_version in ["1.7.7", "1.8.0"]:
+        (mets_xml, _) = migrate_mets(
+                mets_xml, target_version, '1.6.0', contract='aaa')
 
     elem = mets_xml.xpath('//mets:file', namespaces=m.NAMESPACES)[0]
     elem.attrib['USE'] = orig_use
@@ -495,7 +523,7 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" '
         'PROFILE="http://digitalpreservation.fi/'
         'mets-profiles/cultural-heritage" '
-        'OBJID="xxx" fi:CATALOG="1.7.7"/>'
+        'OBJID="xxx" fi:CATALOG="1.8.0"/>'
     )
 
     intended_result = (
@@ -509,11 +537,11 @@ def test_serialize_mets():
         'http://www.loc.gov/standards/mets/mets.xsd" '
         'PROFILE="http://digitalpreservation.fi/'
         'mets-profiles/cultural-heritage" '
-        'OBJID="xxx" fi:CATALOG="1.7.7"/>'
+        'OBJID="xxx" fi:CATALOG="1.8.0"/>'
     )
 
     mets_xml = ET.fromstring(mets_input)
-    mets_outcome = serialize_mets(mets_xml)
+    mets_outcome = serialize_mets(mets_xml, to_catalog='1.8')
 
     assert h.compare_trees(ET.fromstring(intended_result),
                            ET.fromstring(mets_outcome)) is True
@@ -521,8 +549,10 @@ def test_serialize_mets():
 
 def test_get_fi_ns():
     """Tests the get_fi_ns function by asserting that it outputs a
-    different namespace for catalog version 1.7 than the rest.
+    different namespace for catalog versions from 1.7 onwards.
     """
+    assert get_fi_ns(
+        '1.8') == 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
     assert get_fi_ns(
         '1.7') == 'http://digitalpreservation.fi/schemas/mets/fi-extensions'
     assert get_fi_ns(

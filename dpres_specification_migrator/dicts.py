@@ -68,6 +68,14 @@ VERSIONS = {
         'KDK': False,
         'catalog_version': '1.7.7',
         'newest_specification': '1.7.7'
+    },
+    '1.8': {
+        'order': 5,
+        'fix_old': False,
+        'supported': True,
+        'KDK': False,
+        'catalog_version': '1.8.0',
+        'newest_specification': '1.8.0'
     }
 }
 

@@ -83,7 +83,7 @@ def main(arguments=None):
             migrated_mets, cur_catalog=version,
             to_catalog=args.to_version, objid=args.objid)
 
-    mets_b = serialize_mets(migrated_mets)
+    mets_b = serialize_mets(migrated_mets, to_catalog=args.to_version)
 
     filename = args.filename
     with open(os.path.join(args.workspace, filename), 'wb+') as outfile:
@@ -109,7 +109,7 @@ def parse_arguments(arguments: list) -> argparse.Namespace:
     parser.add_argument('--objid', dest='objid', type=str, help='New mets '
                         'OBJID for transformed mets file')
     parser.add_argument('--to_version', dest='to_version', type=str,
-                        default='1.7', help='Catalog version of METS output '
+                        default='1.8', help='Catalog version of METS output '
                         'file')
     parser.add_argument('--contractid', dest='contractid', type=str,
                         help='ContractID of METS file')
@@ -630,7 +630,7 @@ def set_dip_metshdr(root: ET._Element) -> ET._Element:
     return root
 
 
-def serialize_mets(root: ET._Element) -> bytes:
+def serialize_mets(root: ET._Element, to_catalog: str,) -> bytes:
     """Serializes the METS XML data to byte string. Then replaces some
     namespace declarations, since that can't be done in lxml.
 
@@ -645,11 +645,9 @@ def serialize_mets(root: ET._Element) -> bytes:
         b'xmlns:textmd="http://www.kdk.fi/standards/textmd"',
         b'xmlns:textmd="info:lc/xmlns/textMD-v3"')
 
-    version = root.xpath('@*[local-name() = "CATALOG"] | '
-                         '@*[local-name() = "SPECIFICATION"]')[0]
-
-    if version in ['1.7.0', '1.7.1', '1.7.2', '1.7.3', '1.7.4', '1.7.5',
-                   '1.7.6', '1.7.7']:
+    # Fix namespace declarations for all non-KDK catalog versions,
+    # i.e. from version 1.7.0 onwards
+    if not VERSIONS[to_catalog]['KDK']:
         mets_b = mets_b.replace(
             b'xmlns:fi="http://www.kdk.fi/standards/mets/kdk-extensions"',
             b'xmlns:fi="http://digitalpreservation.fi/'
